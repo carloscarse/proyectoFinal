@@ -1,5 +1,6 @@
-const {conexion} = require('../config/dataBase.js');
+const { conexion } = require('../config/dataBase.js');
 
+// Obtener todos los usuarios
 const mostrarUsuarios = (req, res) => {
     conexion.query('SELECT * FROM usuario', (error, results) => {
         if (error) {
@@ -7,8 +8,9 @@ const mostrarUsuarios = (req, res) => {
         }
         res.json(results);
     });
-}
+};
 
+// Obtener un usuario por ID
 const mostrarUsuario = (req, res) => {
     const { id } = req.params;
 
@@ -21,55 +23,68 @@ const mostrarUsuario = (req, res) => {
         }
         res.json(results[0]);
     });
-}
+};
 
+// Crear un nuevo usuario
 const crearUsuario = (req, res) => {
-    const { nombre, email } = req.body;
-    if (!nombre || !email) {
+    const { usuario, clave, persona, rol, estado, creacion, ultimoAcceso } = req.body;
+
+    if (!usuario || !clave || !persona || !rol || !estado || !creacion) {
         return res.status(400).json({
-            error: 'Faltan datos requeridos: nombre y contraseña'
+            error: 'Faltan datos requeridos: usuario, clave, persona, rol, estado y fecha de creación'
         });
     }
-    conexion.query(
-        'INSERT INTO usuario (nombre, email) VALUES (?, ?)', [nombre, email],
-        (error, results) => {
-            if (error) {
-                return res.status(500).json({ 
-                    error: 'Error al crear el usuario',
-                    detalle: error.message // muestra el error real
-                });
-            }
-            res.json({
-                message: "Usuario creado correctamente",
+
+    const sql = `
+        INSERT INTO usuario 
+        (usuario, clave, persona, rol, estado, creacion, ultimoAcceso) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    const valores = [usuario, clave, persona, rol, estado, creacion, ultimoAcceso || null];
+
+    conexion.query(sql, valores, (error, results) => {
+        if (error) {
+            return res.status(500).json({
+                error: 'Error al crear el usuario',
+                detalle: error.message
             });
         }
-    );
-}
+        res.json({ message: 'Usuario creado correctamente' });
+    });
+};
 
-
-
+// Editar un usuario existente
 const editarUsuario = (req, res) => {
     const { id } = req.params;
-    const { nombre, email } = req.body;
+    const { usuario, clave, persona, rol, estado, creacion, ultimoAcceso } = req.body;
 
-    // Validación de campos requeridos
-    if (!nombre || !email) {
-        return res.status(400).json({ error: 'Faltan datos requeridos: nombre y email' });
+    if (!usuario || !clave || !persona || !rol || !estado || !creacion) {
+        return res.status(400).json({
+            error: 'Faltan datos requeridos: usuario, clave, persona, rol, estado y fecha de creación'
+        });
     }
 
-    conexion.query('UPDATE usuario SET nombre = ?, email = ? WHERE id = ?', [nombre, email, id], (error, results) => {
+    const sql = `
+        UPDATE usuario 
+        SET usuario = ?, clave = ?, persona = ?, rol = ?, estado = ?, creacion = ?, ultimoAcceso = ?
+        WHERE id = ?
+    `;
+
+    const valores = [usuario, clave, persona, rol, estado, creacion, ultimoAcceso || null, id];
+
+    conexion.query(sql, valores, (error, results) => {
         if (error) {
             return res.status(500).json({ error: 'Error al editar el usuario' });
         }
         if (results.affectedRows === 0) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
-        res.json({ id, nombre, email });
+        res.json({ id, usuario, persona, rol, estado });
     });
-}
+};
 
-
-
+// Eliminar un usuario
 const eliminarUsuario = (req, res) => {
     const { id } = req.params;
 
@@ -82,12 +97,33 @@ const eliminarUsuario = (req, res) => {
         }
         res.status(204).send();
     });
-}
+};
+
+// Actualizar último acceso (por ejemplo, durante login)
+const actualizarUltimoAcceso = (req, res) => {
+    const { id } = req.params;
+    const fechaActual = new Date();
+
+    conexion.query(
+        'UPDATE usuario SET ultimoAcceso = ? WHERE id = ?',
+        [fechaActual, id],
+        (error, results) => {
+            if (error) {
+                return res.status(500).json({ error: 'Error al actualizar el último acceso' });
+            }
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ error: 'Usuario no encontrado' });
+            }
+            res.json({ message: 'Último acceso actualizado', id, ultimoAcceso: fechaActual });
+        }
+    );
+};
 
 module.exports = {
     mostrarUsuarios,
     mostrarUsuario,
     crearUsuario,
     editarUsuario,
-    eliminarUsuario
+    eliminarUsuario,
+    actualizarUltimoAcceso
 };
