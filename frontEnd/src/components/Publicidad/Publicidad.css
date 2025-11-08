@@ -1,0 +1,37 @@
+.aspect-ratio-16x9 {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.portfolio-box {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+
+.portfolio-box-caption {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 10px 0;
+  text-align: center;
+  transition: background 0.3s ease;
+}
+
+.portfolio-box:hover .portfolio-box-caption {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.project-category {
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.project-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+}

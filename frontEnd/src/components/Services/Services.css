@@ -1,0 +1,15 @@
+.section-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.service-box {
+  max-width: 300px;
+}
+
+.aspect-ratio-4x3 {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+}

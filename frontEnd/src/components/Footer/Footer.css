@@ -1,0 +1,28 @@
+footer {
+  background-color: #212529;
+  color: #f8f9fa;
+}
+
+footer a {
+  color: #f8f9fa;
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+  color: #ffc107;
+}
+
+footer .bi {
+  font-size: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+footer .bi:hover {
+  transform: scale(1.2);
+  color: #ffc107;
+}
+
+footer p {
+  font-size: 0.9rem;
+}
