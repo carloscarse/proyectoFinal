@@ -1,7 +1,7 @@
 import React from 'react';
 import './MainNav.css';
 
-const MainNav = () => (
+const MainNav = ({ onLoginClick }) => (
   <nav className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
     <div className="container">
       <a className="navbar-brand" href="#page-top">galeria tafi viejo</a>
@@ -24,7 +24,7 @@ const MainNav = () => (
           <li className="nav-item"><a className="nav-link" href="#contact">Contactanos</a></li>
         </ul>
       </div>
-      <button className="btn btn-outline-light" type="button">
+      <button className="btn btn-outline-light" type="button" onClick={onLoginClick}>
         login
       </button>
     </div>
