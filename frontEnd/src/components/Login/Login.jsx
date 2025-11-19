@@ -2,32 +2,51 @@ import React, { useState } from 'react';
 import './Login.css';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useUserStore } from '../../Store/userStore';
 
 const Login = ({ onClose }) => {
   const [user, setUser] = useState('');
   const [pass, setPass] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { setUser: setUserStore } = useUserStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!user || !pass) {
+      setError('Todos los campos son obligatorios');
+      return;
+    }
+
     try {
       const res = await axios.post('http://localhost:8000/login', {
-        usuario: user,
+        user: user,
         contrasenia: pass
       });
 
       const data = res.data;
 
-      if (data.ok && data.rol === 'admin') {
-        navigate('/admin');
-        onClose();
+      if (data.ok) {
+        setUserStore({
+          id: data.id,
+          nombre: data.usuario,
+          rol: data.rol
+        });
+
+        if (data.rol === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+
+        if (onClose) onClose();
       } else {
-        alert('Credenciales incorrectas');
+        setError('Credenciales incorrectas');
       }
     } catch (error) {
       console.error('Error al conectar con el backend:', error);
-      alert('Error de conexión con el servidor');
+      setError('Error de conexión con el servidor');
     }
   };
 
@@ -41,7 +60,10 @@ const Login = ({ onClose }) => {
             className="form-control"
             placeholder="Usuario"
             value={user}
-            onChange={(e) => setUser(e.target.value)}
+            onChange={(e) => {
+              setUser(e.target.value);
+              setError('');
+            }}
           />
         </div>
         <div className="form-group">
@@ -50,12 +72,18 @@ const Login = ({ onClose }) => {
             className="form-control"
             placeholder="Contraseña"
             value={pass}
-            onChange={(e) => setPass(e.target.value)}
+            onChange={(e) => {
+              setPass(e.target.value);
+              setError('');
+            }}
           />
         </div>
+        {error && <p className="text-danger mt-2">{error}</p>}
         <div className="form-group d-flex justify-content-between mt-3">
           <button type="submit" className="btn btn-outline-light w-50 me-2">Ingresar</button>
-          <button type="button" className="btn btn-secondary w-50" onClick={onClose}>Cancelar</button>
+          {onClose && (
+            <button type="button" className="btn btn-secondary w-50" onClick={onClose}>Cancelar</button>
+          )}
         </div>
       </form>
     </div>
