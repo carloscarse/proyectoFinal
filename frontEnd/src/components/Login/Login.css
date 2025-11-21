@@ -1,0 +1,78 @@
+.login-dark {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7); /* fondo con transparencia */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px); /* desenfoque suave */
+}
+
+.login-dark form {
+  background-color: rgba(33, 37, 41, 0.85); /* gris oscuro con transparencia */
+  padding: 40px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px; /* más alargado */
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  font-family: "Segoe UI", sans-serif;
+  color: white;
+}
+
+.login-dark h2 {
+  .login-dark h2 {
+    margin-bottom: 30px;
+    font-weight: bold;
+    font-size: 1.8rem;
+    color: #f8f9fa; /* blanco suave, estilo Bootstrap */
+  }
+}
+
+.login-dark .form-control {
+  background: rgba(73, 80, 87, 0.9);
+  border: none;
+  color: white;
+  padding: 12px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.login-dark .form-control::placeholder {
+  color: #ced4da;
+}
+
+.login-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.login-buttons button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.login-buttons button[type="submit"] {
+  background-color: #ff6600;
+  color: white;
+}
+
+.login-buttons button[type="button"] {
+  background-color: #6c757d;
+  color: white;
+}
+
+.login-buttons button:hover {
+  opacity: 0.9;
+}

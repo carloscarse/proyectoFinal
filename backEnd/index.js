@@ -2,14 +2,21 @@ const express = require('express');
 const app = express();
 require('dotenv').config(); // Carga las variables desde .env
 const cors = require('cors');
-const usuario = require("./router/usuario");
 
-// Usamos el puerto desde .env, con fallback a 8000
+// Routers
+const usuario = require('./router/usuario');
+const auth = require('./router/auth');
+const persona = require('./router/persona'); // 👈 nuevo
+
 const PORT = process.env.PORT || 8000;
 
 app.use(cors({ origin: process.env.CORS_ORIGIN }));
 app.use(express.json());
-app.use("/",usuario);
+
+// Rutas
+app.use('/', usuario);
+app.use('/auth', auth);
+app.use('/persona', persona); // 👈 nuevo
 
 // Ruta de prueba
 app.get('/', (req, res) => {

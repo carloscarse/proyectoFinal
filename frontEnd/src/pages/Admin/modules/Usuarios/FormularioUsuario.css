@@ -1,0 +1,75 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.usuarios-form {
+  background-color: rgba(33, 37, 41, 0.95);
+  padding: 30px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.usuarios-form h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.form-scroll {
+  overflow-y: auto;
+  max-height: 60vh;
+  padding-right: 10px;
+}
+
+.usuarios-form label {
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+.usuarios-form input,
+.usuarios-form select {
+  margin-top: 4px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  width: 100%;
+  background-color: #f8f9fa;
+  color: #212529;
+  font-size: 14px;
+}
+
+.usuarios-form input:focus,
+.usuarios-form select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #0d6efd55;
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.form-buttons button {
+  padding: 10px;
+  font-weight: 500;
+}

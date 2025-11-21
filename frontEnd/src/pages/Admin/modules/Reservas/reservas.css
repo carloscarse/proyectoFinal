@@ -1,0 +1,66 @@
+.reservas-container {
+  background-color: #2c2c2c;
+  padding: 2rem;
+  border-radius: 8px;
+  color: white;
+}
+
+.reservas-container h1 {
+  font-size: 24px;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.5rem;
+}
+
+.reservas-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.reservas-form input,
+.reservas-form select,
+.reservas-form textarea {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: none;
+  background-color: #1e1e1e;
+  color: white;
+}
+
+.reservas-form button {
+  background-color: #00bcd4;
+  color: black;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.reservas-form button:hover {
+  background-color: #0097a7;
+}
+.reservas-edicion {
+  background-color: #1e1e1e;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: 6px;
+  color: white;
+}
+
+.reservas-edicion form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.reservas-edicion input,
+.reservas-edicion select,
+.reservas-edicion textarea {
+  background-color: #2c2c2c;
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+}

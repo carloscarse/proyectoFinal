@@ -1,0 +1,13 @@
+.section-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.text-faded {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+hr.light {
+  border-color: rgba(255, 255, 255, 0.3);
+}
