@@ -1,24 +1,28 @@
 const express = require('express');
 const router = express.Router();
 
+// 🧩 Controladores de rol (async/await)
 const {
-    mostrarRoles,
-    mostrarRol,
-    crearRol,
-    editarRol,
-    eliminarRol
+  crearRol,
+  mostrarRoles,
+  mostrarRol,
+  editarRol,
+  eliminarRol
 } = require('../controllers/rol');
 
-// Roles
-router.get("/roles", mostrarRoles);
-router.get("/rol/:id", mostrarRol);
-router.post("/rol", crearRol);
-router.put("/rol/:id", editarRol);
-router.delete("/rol/:id", eliminarRol);
+// 🟡 Obtener todos los roles
+router.get('/', mostrarRoles); // GET /rol
 
-// Ruta de prueba
-router.get('/roles-prueba', (req, res) => {
-    res.json([]); // Devuelve un array vacío solo para probar
-});
+// 🟡 Obtener un rol por ID
+router.get('/:id', mostrarRol); // GET /rol/:id
+
+// 🟢 Crear un nuevo rol
+router.post('/', crearRol); // POST /rol
+
+// 🟠 Editar un rol por ID
+router.put('/:id', editarRol); // PUT /rol/:id
+
+// 🔴 Eliminar un rol por ID
+router.delete('/:id', eliminarRol); // DELETE /rol/:id
 
 module.exports = router;

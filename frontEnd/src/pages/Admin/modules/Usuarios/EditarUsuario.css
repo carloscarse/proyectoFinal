@@ -1,0 +1,20 @@
+.usuarios-form-wrapper.wide {
+  max-width: 900px;
+  margin: auto;
+}
+
+.usuarios-form.two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.usuarios-form.two-columns label {
+  grid-column: span 2;
+  margin-top: 1rem;
+}
+
+.usuarios-form.two-columns input,
+.usuarios-form.two-columns select {
+  width: 100%;
+}

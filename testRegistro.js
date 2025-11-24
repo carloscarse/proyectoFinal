@@ -3,8 +3,8 @@ const bcrypt = require('bcrypt');
 const { conexion } = require('./backEnd/config/dataBase');
 
 const nuevoUsuario = {
-  usuario: 'admin4',
-  clave: 'admin123',
+  usuario: 'admin00',
+  clave: 'admin',
   persona: 1,
   rol: 1,
   estado: 'activo',

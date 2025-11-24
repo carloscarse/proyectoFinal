@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../../../../endpoints/endpoints';
 import './FormularioUsuario.css';
 
 function FormularioRol({ onClose, onCreacion }) {
+  console.log('🟡 Modal FormularioRol abierto');
+
   const [formData, setFormData] = useState({
     rol: '',
     descripcion: '',
@@ -11,37 +13,48 @@ function FormularioRol({ onClose, onCreacion }) {
 
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
+  const [enviando, setEnviando] = useState(false);
+
+  useEffect(() => {
+    console.log('🟢 FormularioRol montado');
+    return () => console.log('🔴 FormularioRol desmontado');
+  }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    console.log(`🟡 Cambió ${name}:`, value);
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (enviando) return;
+    setEnviando(true);
 
-    if (!formData.rol || !formData.descripcion) {
-      setError('Faltan datos requeridos: rol y descripción');
-      return;
-    }
+    console.log('🟡 Enviando datos al backend!');
+    console.log('📦 Datos enviados:', formData);
 
     try {
       const res = await api.post('/rol', formData);
-      setMensaje('✅ Rol registrado correctamente');
-      setError('');
-      console.log('Rol creado:', res.data);
+      console.log('🟢 Backend respondió OK:', res.data);
 
       if (onCreacion) {
-        onCreacion(formData); // ← devuelve el rol creado
+        console.log('🟢 Ejecutando onCreacion con:', res.data);
+        onCreacion(res.data);
       }
 
+      setMensaje('✅ Rol registrado correctamente');
+      setError('');
+
       setTimeout(() => {
-        setMensaje('');
-        onClose(); // ← solo cierra el modal de rol
-      }, 1500);
+        console.log('🟢 Ejecutando onClose desde FormularioRol');
+        onClose();
+      }, 100);
     } catch (err) {
+      console.error('🔴 Error al registrar rol:', err.message);
       setError('❌ Error al registrar rol');
       setMensaje('');
-      console.error(err);
+      setEnviando(false);
     }
   };
 
@@ -65,8 +78,19 @@ function FormularioRol({ onClose, onCreacion }) {
         {error && <p className="text-danger mt-2">{error}</p>}
 
         <div className="form-buttons">
-          <button type="submit" className="btn btn-success w-50 me-2">Crear</button>
-          <button type="button" className="btn btn-secondary w-50" onClick={onClose}>Cancelar</button>
+          <button type="submit" className="btn btn-success w-50 me-2" disabled={enviando}>
+            Crear
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary w-50"
+            onClick={() => {
+              console.log('🟡 Cancelar presionado, ejecutando onClose');
+              onClose();
+            }}
+          >
+            Cancelar
+          </button>
         </div>
       </form>
     </div>

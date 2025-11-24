@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../../../../endpoints/endpoints';
 import './FormularioUsuario.css';
 
-function FormularioPersona({ onClose }) {
+function FormularioPersona({ onClose, onCreacion }) {
   console.log('🟡 Modal FormularioPersona abierto');
 
   const [formData, setFormData] = useState({
@@ -18,32 +18,45 @@ function FormularioPersona({ onClose }) {
 
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
+  const [enviando, setEnviando] = useState(false);
+
+  useEffect(() => {
+    console.log('🟢 FormularioPersona montado');
+    return () => console.log('🔴 FormularioPersona desmontado');
+  }, []);
 
   const handleChange = (e) => {
-    console.log(`🟡 Cambió ${e.target.name}:`, e.target.value);
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    console.log(`🟡 Cambió ${name}:`, value);
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('🟡 Enviando datos al backend:', formData);
+    if (enviando) return;
+    setEnviando(true);
+
+    console.log('🟡 Enviando datos al backend!');
+    console.log('📦 Datos enviados:', formData);
 
     try {
       const res = await api.post('/persona', formData);
-      console.log('🟢 Backend respondió:', res.data);
+      console.log('🟢 Backend respondió OK:', res.data);
 
-      setMensaje('✅ Persona registrada correctamente');
-      setError('');
+      if (onCreacion) {
+        console.log('🟢 Ejecutando onCreacion con:', res.data);
+        onCreacion(res.data);
+      }
 
       setTimeout(() => {
-        console.log('🟢 Cerrando modal FormularioPersona');
-        setMensaje('');
+        console.log('🟢 Ejecutando onClose desde FormularioPersona');
         onClose();
-      }, 1500);
+      }, 100);
     } catch (err) {
       console.error('🔴 Error al registrar persona:', err.message);
       setError('❌ Error al registrar persona');
       setMensaje('');
+      setEnviando(false);
     }
   };
 
@@ -87,11 +100,15 @@ function FormularioPersona({ onClose }) {
         {error && <p className="text-danger mt-2">{error}</p>}
 
         <div className="form-buttons">
-          <button type="submit" className="btn btn-success w-50 me-2">Crear</button>
+          <button type="submit" className="btn btn-success w-50 me-2" disabled={enviando}>
+            Crear
+          </button>
           <button type="button" className="btn btn-secondary w-50" onClick={() => {
-            console.log('🟡 Cancelar y cerrar modal FormularioPersona');
+            console.log('🟡 Cancelar presionado, ejecutando onClose');
             onClose();
-          }}>Cancelar</button>
+          }}>
+            Cancelar
+          </button>
         </div>
       </form>
     </div>

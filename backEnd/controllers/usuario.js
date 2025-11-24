@@ -48,22 +48,32 @@ const crearUsuario = async (req, res) => {
 };
 
 // Editar un usuario existente
-const editarUsuario = (req, res) => {
+const editarUsuario = async (req, res) => {
   const { id } = req.params;
   const { usuario, clave, persona, rol, estado } = req.body;
 
-  const sql = 'UPDATE usuario SET usuario = ?, clave = ?, persona = ?, rol = ?, estado = ? WHERE id = ?';
-  const valores = [usuario, clave, persona, rol, estado, id];
+  try {
+    const sql = 'UPDATE usuario SET usuario = ?, clave = ?, persona = ?, rol = ?, estado = ? WHERE id = ?';
+    const valores = [usuario, clave, persona, rol, estado, id];
 
-  conexion.query(sql, valores, (error, results) => {
-    if (error) {
-      return res.status(500).json({ error: 'Error al editar el usuario' });
-    }
+    const [results] = await conexion.query(sql, valores);
+
     if (results.affectedRows === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
-    res.json({ message: 'Usuario actualizado correctamente' });
-  });
+
+    // 👇 Respuesta clara al frontend
+    res.status(200).json({
+      message: 'Usuario actualizado correctamente',
+      id,
+      usuario,
+      persona,
+      rol,
+      estado
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al editar el usuario', detalle: error.message });
+  }
 };
 
 // Eliminar un usuario

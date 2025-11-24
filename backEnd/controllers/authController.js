@@ -34,7 +34,7 @@ exports.login = async (req, res) => {
     console.log('🎫 Generando token...');
     const token = jwt.sign(
       { id: user.id, usuario: user.usuario, rol: user.rol },
-      process.env.JWT_SECRET || 'clave_secreta_por_defecto',
+      process.env.CLAVE_ENCRIPTADO,
       { expiresIn: '1h' }
     );
     console.log('🎫 Token generado:', token);

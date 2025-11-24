@@ -1,98 +1,159 @@
 const { conexion } = require('../config/dataBase.js');
 
-// Obtener todos los roles
-const mostrarRoles = (req, res) => {
-    conexion.query('SELECT * FROM rol', (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al obtener los roles' });
-        }
-        res.json(results);
+// Crear un nuevo rol (con validación defensiva)
+const crearRol = async (req, res) => {
+  console.log('🟡 [crearRol] Recibido:', req.body);
+
+  const {
+    rol = '',
+    descripcion = '',
+    nota = ''
+  } = req.body;
+
+  // Validación: al menos uno de los campos principales no debe ser vacío
+  if (!rol && !descripcion && !nota) {
+    return res.status(400).json({
+      error: 'Debe ingresar al menos un nombre de rol, descripción o nota'
     });
+  }
+
+  const sql = `
+    INSERT INTO rol (rol, descripcion, nota)
+    VALUES (?, ?, ?)
+  `;
+  const valores = [rol, descripcion, nota];
+
+  try {
+    console.log('🟡 [crearRol] Ejecutando SQL:', sql);
+    console.log('🟡 [crearRol] Valores:', valores);
+
+    const [results] = await conexion.query(sql, valores);
+
+    console.log('🟢 [crearRol] Rol creado con ID:', results.insertId);
+
+    const partes = [rol, descripcion, nota];
+    const label = partes.filter(v => v && v !== 'null').join(' - ');
+
+    res.json({
+      message: 'Rol creado correctamente',
+      id: results.insertId,
+      rol,
+      descripcion,
+      nota,
+      label
+    });
+  } catch (error) {
+    console.error('🔴 [crearRol] Error al insertar:', error.message);
+    res.status(500).json({
+      error: 'Error al crear el rol',
+      detalle: error.message
+    });
+  }
 };
 
-// Obtener un rol por ID
-const mostrarRol = (req, res) => {
-    const { id } = req.params;
+// Mostrar todos los roles
+const mostrarRoles = async (req, res) => {
+  try {
+    console.log('🟡 [mostrarRoles] Ejecutando SELECT * FROM rol');
+    const [results] = await conexion.query('SELECT * FROM rol');
+    console.log('🟢 [mostrarRoles] Roles obtenidos:', results);
 
-    conexion.query('SELECT * FROM rol WHERE id = ?', [id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al obtener el rol' });
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'Rol no encontrado' });
-        }
-        res.json(results[0]);
+    const rolesConLabel = results.map(r => {
+      const partes = [r.rol, r.descripcion, r.nota];
+      const label = partes.filter(v => v && v !== 'null').join(' - ');
+      return { ...r, label };
     });
+
+    res.json(rolesConLabel);
+  } catch (error) {
+    console.error('🔴 [mostrarRoles] Error SQL:', error.message);
+    res.status(500).json({ error: 'Error al obtener los roles', detalle: error.message });
+  }
 };
 
-// Crear un nuevo rol
-const crearRol = (req, res) => {
-    const { rol, descripcion, nota } = req.body;
-
-    if (!rol || !descripcion) {
-        return res.status(400).json({
-            error: 'Faltan datos requeridos: rol y descripción'
-        });
+// Mostrar un rol por ID
+const mostrarRol = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [results] = await conexion.query('SELECT * FROM rol WHERE id = ?', [id]);
+    if (results.length === 0) {
+      console.warn('⚠️ Rol no encontrado:', id);
+      return res.status(404).json({ error: 'Rol no encontrado' });
     }
+    console.log('🟢 Rol encontrado:', results[0]);
 
-    const sql = 'INSERT INTO rol (rol, descripcion, nota) VALUES (?, ?, ?)';
-    const valores = [rol, descripcion, nota || null];
+    const r = results[0];
+    const partes = [r.rol, r.descripcion, r.nota];
+    const label = partes.filter(v => v && v !== 'null').join(' - ');
 
-    conexion.query(sql, valores, (error, results) => {
-        if (error) {
-            return res.status(500).json({
-                error: 'Error al crear el rol',
-                detalle: error.message
-            });
-        }
-        res.json({ message: 'Rol creado correctamente' });
-    });
+    res.json({ ...r, label });
+  } catch (error) {
+    console.error('🔴 Error al obtener rol:', error.message);
+    res.status(500).json({ error: 'Error al obtener el rol', detalle: error.message });
+  }
 };
 
-// Editar un rol existente
-const editarRol = (req, res) => {
-    const { id } = req.params;
-    const { rol, descripcion, nota } = req.body;
+// Editar un rol
+const editarRol = async (req, res) => {
+  const { id } = req.params;
+  const {
+    rol,
+    descripcion,
+    nota
+  } = req.body;
 
-    if (!rol || !descripcion) {
-        return res.status(400).json({
-            error: 'Faltan datos requeridos: rol y descripción'
-        });
-    }
-
-    const sql = 'UPDATE rol SET rol = ?, descripcion = ?, nota = ? WHERE id = ?';
-    const valores = [rol, descripcion, nota || null, id];
-
-    conexion.query(sql, valores, (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al editar el rol' });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ error: 'Rol no encontrado' });
-        }
-        res.json({ id, rol, descripcion });
+  if (!rol && !descripcion && !nota) {
+    return res.status(400).json({
+      error: 'Debe ingresar al menos un nombre de rol, descripción o nota'
     });
+  }
+
+  const sql = `
+    UPDATE rol
+    SET rol = ?, descripcion = ?, nota = ?
+    WHERE id = ?
+  `;
+  const valores = [rol, descripcion, nota, id];
+
+  try {
+    const [results] = await conexion.query(sql, valores);
+    if (results.affectedRows === 0) {
+      console.warn('⚠️ Rol no encontrado para editar:', id);
+      return res.status(404).json({ error: 'Rol no encontrado' });
+    }
+    console.log('🟢 Rol actualizado:', id);
+
+    const partes = [rol, descripcion, nota];
+    const label = partes.filter(v => v && v !== 'null').join(' - ');
+
+    res.json({ id, rol, descripcion, nota, label });
+  } catch (error) {
+    console.error('🔴 Error al editar rol:', error.message);
+    res.status(500).json({ error: 'Error al editar el rol', detalle: error.message });
+  }
 };
 
 // Eliminar un rol
-const eliminarRol = (req, res) => {
-    const { id } = req.params;
-
-    conexion.query('DELETE FROM rol WHERE id = ?', [id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al eliminar el rol' });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ error: 'Rol no encontrado' });
-        }
-        res.status(204).send();
-    });
+const eliminarRol = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [results] = await conexion.query('DELETE FROM rol WHERE id = ?', [id]);
+    if (results.affectedRows === 0) {
+      console.warn('⚠️ Rol no encontrado para eliminar:', id);
+      return res.status(404).json({ error: 'Rol no encontrado' });
+    }
+    console.log('🟢 Rol eliminado:', id);
+    res.status(204).send();
+  } catch (error) {
+    console.error('🔴 Error al eliminar rol:', error.message);
+    res.status(500).json({ error: 'Error al eliminar el rol', detalle: error.message });
+  }
 };
 
 module.exports = {
-    mostrarRoles,
-    mostrarRol,
-    crearRol,
-    editarRol,
-    eliminarRol
+  crearRol,
+  mostrarRoles,
+  mostrarRol,
+  editarRol,
+  eliminarRol
 };
