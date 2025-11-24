@@ -1,13 +1,14 @@
 const express = require('express');
 const app = express();
-require('dotenv').config(); // Carga las variables desde .env
+require('dotenv').config();
 const cors = require('cors');
 
 // Routers
 const usuario = require('./router/usuario');
 const auth = require('./router/auth');
 const persona = require('./router/persona');
-const rol = require('./router/rol'); // 👈 agregado
+const rol = require('./router/rol');
+const inquilino = require('./router/inquilino'); // ✅ agregado
 
 const PORT = process.env.PORT || 8000;
 
@@ -18,9 +19,9 @@ app.use(express.json());
 app.use('/', usuario);
 app.use('/auth', auth);
 app.use('/persona', persona);
-app.use('/rol', rol); // 👈 agregado
+app.use('/rol', rol);
+app.use('/inquilino', inquilino); // ✅ agregado
 
-// Ruta de prueba
 app.get('/', (req, res) => {
   res.send('¡Hola desde el backend!');
 });

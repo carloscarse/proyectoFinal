@@ -1,24 +1,26 @@
 const express = require('express');
 const router = express.Router();
-
 const {
-    mostrarInquilinos,
-    mostrarInquilino,
-    crearInquilino,
-    editarInquilino,
-    eliminarInquilino
+  mostrarInquilinos,
+  mostrarInquilino,
+  crearInquilino,
+  editarInquilino,
+  eliminarInquilino
 } = require('../controllers/inquilino');
 
-// Inquilinos
-router.get("/inquilinos", mostrarInquilinos);
-router.get("/inquilino/:id", mostrarInquilino);
-router.post("/inquilino", crearInquilino);
-router.put("/inquilino/:id", editarInquilino);
-router.delete("/inquilino/:id", eliminarInquilino);
+// ✅ Listar todos los inquilinos
+router.get('/inquilinos', mostrarInquilinos);
 
-// Ruta de prueba
-router.get('/inquilinos-prueba', (req, res) => {
-    res.json([]); // Devuelve un array vacío solo para probar
-});
+// ✅ Obtener un inquilino por ID
+router.get('/:id', mostrarInquilino);
+
+// ✅ Crear un nuevo inquilino
+router.post('/', crearInquilino);
+
+// ✅ Editar un inquilino existente
+router.put('/:id', editarInquilino);
+
+// ✅ Eliminar un inquilino
+router.delete('/:id', eliminarInquilino);
 
 module.exports = router;

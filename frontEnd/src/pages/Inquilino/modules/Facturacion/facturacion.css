@@ -1,0 +1,66 @@
+.facturacion-container {
+  background-color: #2c2c2c;
+  padding: 2rem;
+  border-radius: 8px;
+  color: white;
+}
+
+.facturacion-container h1 {
+  font-size: 24px;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.5rem;
+}
+
+.facturacion-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.facturacion-form input,
+.facturacion-form select,
+.facturacion-form textarea {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: none;
+  background-color: #1e1e1e;
+  color: white;
+}
+
+.facturacion-form button {
+  background-color: #00bcd4;
+  color: black;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.facturacion-form button:hover {
+  background-color: #0097a7;
+}
+.factura-edicion {
+  background-color: #1e1e1e;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: 6px;
+  color: white;
+}
+
+.factura-edicion form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.factura-edicion input,
+.factura-edicion select,
+.factura-edicion textarea {
+  background-color: #2c2c2c;
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
