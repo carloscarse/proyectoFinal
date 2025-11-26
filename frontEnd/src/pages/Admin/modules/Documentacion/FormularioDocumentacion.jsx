@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '../../../../endpoints/endpoints';
+import FormularioInquilino from '../Inquilinos/FormularioInquilino';
+import './FormularioDocumentacion.css';
 
-function FormularioDocumentacion() {
+function FormularioDocumentacion({ onClose }) {
   const [formData, setFormData] = useState({
-    documento: '',
     inquilino: '',
     descripcion: '',
     emision: '',
@@ -11,51 +13,182 @@ function FormularioDocumentacion() {
     fechaPresentacion: ''
   });
 
+  const [archivo, setArchivo] = useState(null);
+  const [inquilinos, setInquilinos] = useState([]);
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
+  const [showNuevoInquilino, setShowNuevoInquilino] = useState(false);
+
+  const fetchInquilinos = async () => {
+    try {
+      const resInq = await api.get('/inquilino/inquilinos');
+      const lista = resInq.data || [];
+
+      const inquilinosConLabel = await Promise.all(
+        lista.map(async (i) => {
+          let label = `Inquilino #${i.id}`;
+          try {
+            if (i.persona) {
+              const resPersona = await api.get(`/persona/${i.persona}`);
+              const p = resPersona.data || {};
+              const partes = [p.nombre, p.segundoNombre, p.apellido, p.segundoApellido];
+              label = partes.filter(v => v && v !== 'null').join(' ').trim() || label;
+            }
+          } catch (err) {
+            console.error(`❌ Error al obtener persona ${i.persona}:`, err?.message || err);
+          }
+          return { id: String(i.id), label };
+        })
+      );
+
+      setInquilinos(inquilinosConLabel);
+    } catch (err) {
+      console.error('❌ Error al obtener inquilinos:', err?.message || err);
+    }
+  };
+
+  useEffect(() => {
+    fetchInquilinos();
+  }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === 'inquilino') {
+      if (value === 'nuevo') {
+        setShowNuevoInquilino(true);
+        return;
+      }
+      setFormData(prev => ({ ...prev, inquilino: value }));
+      return;
+    }
+
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    setArchivo(e.target.files[0]);
+    console.log('📎 Archivo seleccionado:', e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!archivo) {
+      setError('❌ Debes seleccionar un archivo PDF o imagen');
+      return;
+    }
+    if (!formData.inquilino) {
+      setError('❌ Debes seleccionar un inquilino');
+      return;
+    }
+
     try {
-      const res = await api.post('/documentacion', formData);
+      // ✅ Importante: enviar como multipart/form-data
+      const formDataArchivo = new FormData();
+      formDataArchivo.append('archivo', archivo);
+
+      const resArchivo = await api.post('/documentacion/upload', formDataArchivo, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      const rutaArchivo = resArchivo.data.ruta;
+
+      const payload = {
+        documento: rutaArchivo,
+        inquilino: formData.inquilino,
+        descripcion: formData.descripcion,
+        emision: formData.emision,
+        vencimiento: formData.vencimiento,
+        fechaPresentacion: formData.fechaPresentacion
+      };
+
+      console.log('📦 Payload enviado:', payload);
+
+      await api.post('/documentacion', payload);
+
       setMensaje('✅ Documentación registrada correctamente');
       setError('');
-      console.log('Documento creado:', res.data);
+      window.dispatchEvent(new CustomEvent('documentacion:refresh'));
+      setTimeout(() => {
+        setMensaje('');
+        onClose();
+      }, 1500);
     } catch (err) {
+      console.error('❌ Error al registrar documentación:', err?.message || err);
       setError('❌ Error al registrar documentación');
       setMensaje('');
-      console.error(err);
     }
   };
 
   return (
-    <form className="documentacion-form" onSubmit={handleSubmit}>
-      <label>Documento</label>
-      <input name="documento" placeholder="Nombre del documento" onChange={handleChange} />
+    <div className="modal-overlay">
+      <div className="usuarios-form">
+        <h3 className="text-center mb-3">Registrar Documentación</h3>
 
-      <label>ID de inquilino</label>
-      <input name="inquilino" placeholder="ID de inquilino" onChange={handleChange} />
+        <form onSubmit={handleSubmit}>
+          <div className="form-scroll">
+            <label>Archivo (PDF o imagen)</label>
+            <input type="file" accept=".pdf,image/*" onChange={handleFileChange} />
 
-      <label>Descripción</label>
-      <input name="descripcion" placeholder="Descripción del documento" onChange={handleChange} />
+            <label>Inquilino</label>
+            <select
+              name="inquilino"
+              value={formData.inquilino}
+              onChange={handleChange}
+            >
+              <option value="">-- Seleccione --</option>
+              <option value="nuevo">➕ Nuevo</option>
+              {inquilinos.map(i => (
+                <option key={i.id} value={i.id}>{i.label}</option>
+              ))}
+            </select>
 
-      <label>Fecha de emisión</label>
-      <input name="emision" type="date" onChange={handleChange} />
+            <label>Descripción</label>
+            <input
+              name="descripcion"
+              value={formData.descripcion}
+              onChange={handleChange}
+              placeholder="Breve descripción del documento"
+            />
 
-      <label>Fecha de vencimiento</label>
-      <input name="vencimiento" type="date" onChange={handleChange} />
+            <label>Fecha de emisión</label>
+            <input type="date" name="emision" value={formData.emision} onChange={handleChange} />
 
-      <label>Fecha de presentación</label>
-      <input name="fechaPresentacion" type="date" onChange={handleChange} />
+            <label>Fecha de vencimiento</label>
+            <input type="date" name="vencimiento" value={formData.vencimiento} onChange={handleChange} />
 
-      <button type="submit">Registrar Documento</button>
-      {mensaje && <p style={{ color: 'lime' }}>{mensaje}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </form>
+            <label>Fecha de presentación</label>
+            <input type="date" name="fechaPresentacion" value={formData.fechaPresentacion} onChange={handleChange} />
+          </div>
+
+          {mensaje && <p className="text-success mt-2">{mensaje}</p>}
+          {error && <p className="text-danger mt-2">{error}</p>}
+
+          <div className="form-buttons">
+            <button type="submit" className="btn btn-success btn-sm me-2">Registrar</button>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      {showNuevoInquilino && createPortal(
+        <div className="modal-overlay">
+          <FormularioInquilino
+            onClose={async (nuevoId) => {
+              setShowNuevoInquilino(false);
+              await fetchInquilinos();
+              if (nuevoId) {
+                setFormData(prev => ({ ...prev, inquilino: String(nuevoId) }));
+              } else if (inquilinos.length > 0) {
+                const ultimo = inquilinos[inquilinos.length - 1];
+                setFormData(prev => ({ ...prev, inquilino: String(ultimo.id) }));
+              }
+            }}
+          />
+        </div>,
+        document.getElementById('modals-root')
+      )}
+    </div>
   );
 }
 
