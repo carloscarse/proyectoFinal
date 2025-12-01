@@ -4,7 +4,9 @@ import { api } from '../../../../endpoints/endpoints';
 import FormularioInquilino from '../Inquilinos/FormularioInquilino';
 import './FormularioDocumentacion.css';
 
-function FormularioDocumentacion({ onClose }) {
+function FormularioDocumentacion({ onClose, mode = 'create', initialDoc = null, onSaved }) {
+  const isEdit = mode === 'edit';
+
   const [formData, setFormData] = useState({
     inquilino: '',
     descripcion: '',
@@ -18,6 +20,19 @@ function FormularioDocumentacion({ onClose }) {
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
   const [showNuevoInquilino, setShowNuevoInquilino] = useState(false);
+
+  // ✅ Precargar datos si es edición
+  useEffect(() => {
+    if (isEdit && initialDoc) {
+      setFormData({
+        inquilino: String(initialDoc.inquilino ?? ''),
+        descripcion: initialDoc.descripcion ?? '',
+        emision: initialDoc.emision ? initialDoc.emision.substring(0, 10) : '',
+        vencimiento: initialDoc.vencimiento ? initialDoc.vencimiento.substring(0, 10) : '',
+        fechaPresentacion: initialDoc.fechaPresentacion ? initialDoc.fechaPresentacion.substring(0, 10) : ''
+      });
+    }
+  }, [isEdit, initialDoc]);
 
   const fetchInquilinos = async () => {
     try {
@@ -73,25 +88,21 @@ function FormularioDocumentacion({ onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!archivo) {
-      setError('❌ Debes seleccionar un archivo PDF o imagen');
-      return;
-    }
-    if (!formData.inquilino) {
-      setError('❌ Debes seleccionar un inquilino');
-      return;
-    }
 
     try {
-      // ✅ Importante: enviar como multipart/form-data
-      const formDataArchivo = new FormData();
-      formDataArchivo.append('archivo', archivo);
+      let rutaArchivo = initialDoc?.documento || '';
 
-      const resArchivo = await api.post('/documentacion/upload', formDataArchivo, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      // ✅ Si se selecciona archivo nuevo, subirlo
+      if (archivo) {
+        const formDataArchivo = new FormData();
+        formDataArchivo.append('archivo', archivo);
 
-      const rutaArchivo = resArchivo.data.ruta;
+        const resArchivo = await api.post('/documentacion/upload', formDataArchivo, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        rutaArchivo = resArchivo.data.ruta;
+      }
 
       const payload = {
         documento: rutaArchivo,
@@ -104,18 +115,25 @@ function FormularioDocumentacion({ onClose }) {
 
       console.log('📦 Payload enviado:', payload);
 
-      await api.post('/documentacion', payload);
+      if (isEdit && initialDoc?.id) {
+        await api.put(`/documentacion/${initialDoc.id}`, payload);
+        setMensaje('✅ Documentación actualizada correctamente');
+      } else {
+        await api.post('/documentacion', payload);
+        setMensaje('✅ Documentación registrada correctamente');
+      }
 
-      setMensaje('✅ Documentación registrada correctamente');
       setError('');
       window.dispatchEvent(new CustomEvent('documentacion:refresh'));
+      if (onSaved) onSaved();
+
       setTimeout(() => {
         setMensaje('');
         onClose();
       }, 1500);
     } catch (err) {
-      console.error('❌ Error al registrar documentación:', err?.message || err);
-      setError('❌ Error al registrar documentación');
+      console.error('❌ Error al guardar documentación:', err?.message || err);
+      setError('❌ Error al guardar documentación');
       setMensaje('');
     }
   };
@@ -123,12 +141,17 @@ function FormularioDocumentacion({ onClose }) {
   return (
     <div className="modal-overlay">
       <div className="usuarios-form">
-        <h3 className="text-center mb-3">Registrar Documentación</h3>
+        <h3 className="text-center mb-3">
+          {isEdit ? 'Editar Documentación' : 'Registrar Documentación'}
+        </h3>
 
         <form onSubmit={handleSubmit}>
           <div className="form-scroll">
             <label>Archivo (PDF o imagen)</label>
             <input type="file" accept=".pdf,image/*" onChange={handleFileChange} />
+            {isEdit && initialDoc?.documento && (
+              <p className="small text-muted">Archivo actual: {initialDoc.documento}</p>
+            )}
 
             <label>Inquilino</label>
             <select
@@ -165,7 +188,9 @@ function FormularioDocumentacion({ onClose }) {
           {error && <p className="text-danger mt-2">{error}</p>}
 
           <div className="form-buttons">
-            <button type="submit" className="btn btn-success btn-sm me-2">Registrar</button>
+            <button type="submit" className="btn btn-success btn-sm me-2">
+              {isEdit ? 'Guardar cambios' : 'Registrar'}
+            </button>
             <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Cancelar</button>
           </div>
         </form>

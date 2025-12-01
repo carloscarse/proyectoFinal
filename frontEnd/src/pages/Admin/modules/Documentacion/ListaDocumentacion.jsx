@@ -5,7 +5,12 @@ import { createPortal } from 'react-dom';
 
 function ListaDocumentacion() {
   const [documentaciones, setDocumentaciones] = useState([]);
-  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Modales y selección
+  const [showView, setShowView] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState(null);
 
   const formatoFecha = (fechaIso) => {
     if (!fechaIso || isNaN(Date.parse(fechaIso))) return '';
@@ -18,6 +23,7 @@ function ListaDocumentacion() {
 
   const fetchDocumentaciones = async () => {
     try {
+      setLoading(true);
       const res = await api.get('/documentaciones');
       const lista = res.data || [];
 
@@ -52,6 +58,8 @@ function ListaDocumentacion() {
       setDocumentaciones(docsConLabel);
     } catch (err) {
       console.error('❌ Error al obtener documentaciones:', err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,6 +69,34 @@ function ListaDocumentacion() {
     window.addEventListener('documentacion:refresh', handler);
     return () => window.removeEventListener('documentacion:refresh', handler);
   }, []);
+
+  // Acciones
+  const handleVer = (doc) => {
+    setSelectedDoc(doc);
+    setShowView(true);
+  };
+
+  const handleEditar = (doc) => {
+    setSelectedDoc(doc);
+    setShowEdit(true);
+  };
+
+  const handleEliminar = async (id) => {
+    const confirmado = window.confirm('¿Seguro que deseas eliminar este registro?');
+    if (!confirmado) return;
+
+    try {
+      await api.delete(`/documentacion/${id}`);
+      // Feedback y refresco
+      alert('✅ Documento eliminado');
+      // Refrescar lista y notificar
+      fetchDocumentaciones();
+      window.dispatchEvent(new Event('documentacion:refresh'));
+    } catch (err) {
+      console.error('❌ Error al eliminar documento:', err.message);
+      alert('❌ No se pudo eliminar el documento');
+    }
+  };
 
   return (
     <div className="lista-documentacion">
@@ -78,28 +114,84 @@ function ListaDocumentacion() {
           </tr>
         </thead>
         <tbody>
-          {documentaciones.map((doc) => (
-            <tr key={doc.id}>
-              <td>{doc.id}</td>
-              <td>{doc.inquilinoLabel}</td>
-              <td>{doc.descripcion}</td>
-              <td>{doc.emisionFmt}</td>
-              <td>{doc.vencimientoFmt}</td>
-              <td>{doc.presentacionFmt}</td>
-              <td className="text-truncate" style={{ maxWidth: '120px' }}>{doc.documento}</td>
-              <td className="text-center">
-                <button className="btn btn-outline-primary btn-sm me-1" title="Ver">👁</button>
-                <button className="btn btn-outline-warning btn-sm me-1" title="Editar">✏️</button>
-                <button className="btn btn-outline-danger btn-sm" title="Eliminar">🗑</button>
-              </td>
-            </tr>
-          ))}
+          {loading ? (
+            <tr><td colSpan="8">Cargando...</td></tr>
+          ) : documentaciones.length === 0 ? (
+            <tr><td colSpan="8">No hay documentación registrada</td></tr>
+          ) : (
+            documentaciones.map((doc) => (
+              <tr key={doc.id}>
+                <td>{doc.id}</td>
+                <td>{doc.inquilinoLabel}</td>
+                <td>{doc.descripcion}</td>
+                <td>{doc.emisionFmt}</td>
+                <td>{doc.vencimientoFmt}</td>
+                <td>{doc.presentacionFmt}</td>
+                <td className="text-truncate" style={{ maxWidth: '120px' }}>{doc.documento}</td>
+                <td className="text-center">
+                  <button
+                    className="btn btn-outline-primary btn-sm me-1"
+                    title="Ver"
+                    onClick={() => handleVer(doc)}
+                  >
+                    👁
+                  </button>
+                  <button
+                    className="btn btn-outline-warning btn-sm me-1"
+                    title="Editar"
+                    onClick={() => handleEditar(doc)}
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    className="btn btn-outline-danger btn-sm"
+                    title="Eliminar"
+                    onClick={() => handleEliminar(doc.id)}
+                  >
+                    🗑
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
 
-      {showForm && createPortal(
+      {/* Modal Ver */}
+      {showView && selectedDoc && createPortal(
         <div className="modal-overlay">
-          <FormularioDocumentacion onClose={() => setShowForm(false)} />
+          <div className="modal-window p-3">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h5 className="m-0">Ver documentación</h5>
+              <button className="btn btn-sm btn-secondary" onClick={() => setShowView(false)}>Cerrar</button>
+            </div>
+            <div className="small">
+              <p><b>ID:</b> {selectedDoc.id}</p>
+              <p><b>Inquilino:</b> {selectedDoc.inquilinoLabel}</p>
+              <p><b>Descripción:</b> {selectedDoc.descripcion}</p>
+              <p><b>Emisión:</b> {selectedDoc.emisionFmt}</p>
+              <p><b>Vencimiento:</b> {selectedDoc.vencimientoFmt}</p>
+              <p><b>Presentación:</b> {selectedDoc.presentacionFmt}</p>
+              <p className="text-truncate"><b>Archivo:</b> {selectedDoc.documento}</p>
+            </div>
+          </div>
+        </div>,
+        document.getElementById('modals-root')
+      )}
+
+      {/* Modal Editar usando FormularioDocumentacion */}
+      {showEdit && selectedDoc && createPortal(
+        <div className="modal-overlay">
+          <FormularioDocumentacion
+            mode="edit"
+            initialDoc={selectedDoc}
+            onClose={() => setShowEdit(false)}
+            onSaved={() => {
+              setShowEdit(false);
+              fetchDocumentaciones();
+              window.dispatchEvent(new Event('documentacion:refresh'));
+            }}
+          />
         </div>,
         document.getElementById('modals-root')
       )}

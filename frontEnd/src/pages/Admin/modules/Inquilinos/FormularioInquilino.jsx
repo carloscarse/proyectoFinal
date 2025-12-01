@@ -1,7 +1,8 @@
+// src/components/Admin/Inquilinos/FormularioInquilino.jsx
 import { useState, useEffect } from 'react';
 import { api } from '../../../../endpoints/endpoints';
-import FormularioPersona from '../Usuarios/FormularioPersona'; // ✅ ruta corregida
-import '../Usuarios/FormularioUsuario.css'; // ✅ reutilizamos estilos de usuarios
+import FormularioPersona from '../Usuarios/FormularioPersona';
+import '../Usuarios/FormularioUsuario.css';
 
 function FormularioInquilino({ onClose }) {
   const initialForm = {
@@ -49,6 +50,14 @@ function FormularioInquilino({ onClose }) {
     e.preventDefault();
     try {
       const res = await api.post('/inquilino', formData);
+
+      // ⚠️ Ajustá según lo que devuelva tu backend: id o insertId
+      const nuevoId = res.data?.id ?? res.data?.insertId;
+
+      if (!nuevoId) {
+        throw new Error('No se recibió el ID del nuevo inquilino');
+      }
+
       setMensaje('✅ Inquilino registrado correctamente');
       setError('');
 
@@ -57,8 +66,8 @@ function FormularioInquilino({ onClose }) {
 
       setTimeout(() => {
         setMensaje('');
-        onClose();
-      }, 1500);
+        onClose(nuevoId);   // ✅ ahora devuelve el id al padre
+      }, 1200);
     } catch (err) {
       setError('❌ Error al registrar inquilino');
       setMensaje('');
@@ -104,7 +113,7 @@ function FormularioInquilino({ onClose }) {
             <button type="submit" className="btn btn-success w-50 me-2">
               Registrar
             </button>
-            <button type="button" className="btn btn-secondary w-50" onClick={onClose}>
+            <button type="button" className="btn btn-secondary w-50" onClick={() => onClose(null)}>
               Cancelar
             </button>
           </div>

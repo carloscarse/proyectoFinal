@@ -1,5 +1,14 @@
 const mysql = require('mysql2/promise');
-require('dotenv').config();
+// ✅ Cargar el .env desde la carpeta backEnd
+require('dotenv').config({ path: __dirname + '/../.env' });
+
+// Verificación de variables cargadas
+console.log('🔎 Variables de entorno cargadas:', {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  pass: process.env.DB_PASS,
+  name: process.env.DB_NAME
+});
 
 // Pool de conexiones con soporte para Promesas
 const conexion = mysql.createPool({
