@@ -1,112 +1,120 @@
 const { conexion } = require('../config/dataBase.js');
 
-// Obtener todos los contratos
-const mostrarContratos = (req, res) => {
-    conexion.query('SELECT * FROM contrato', (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al obtener los contratos' });
-        }
-        res.json(results);
-    });
+// Listar todos los contratos
+const mostrarContratos = async (req, res) => {
+  try {
+    const [rows] = await conexion.query('SELECT * FROM contrato');
+    res.json(rows);
+  } catch (error) {
+    console.error('❌ Error al obtener contratos:', error);
+    res.status(500).json({ error: 'Error al obtener contratos', detalle: error.message });
+  }
 };
 
 // Obtener un contrato por ID
-const mostrarContrato = (req, res) => {
-    const { id } = req.params;
-
-    conexion.query('SELECT * FROM contrato WHERE id = ?', [id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al obtener el contrato' });
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'Contrato no encontrado' });
-        }
-        res.json(results[0]);
-    });
+const mostrarContrato = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await conexion.query('SELECT * FROM contrato WHERE id = ?', [id]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Contrato no encontrado' });
+    res.json(rows[0]);
+  } catch (error) {
+    console.error('❌ Error al obtener contrato:', error);
+    res.status(500).json({ error: 'Error al obtener contrato', detalle: error.message });
+  }
 };
 
-// Crear un nuevo contrato
-const crearContrato = (req, res) => {
-    const { registro, fecha, condiciones, inquilino, espacio, inicio, fin, nota } = req.body;
+// Crear contrato
+const crearContrato = async (req, res) => {
+  const { fecha, condiciones, inquilino, espacio, inicio, fin, nota } = req.body;
 
-    if (!registro || !fecha || !condiciones || !inquilino || !espacio || !inicio || !fin) {
-        return res.status(400).json({
-            error: 'Faltan datos requeridos: registro, fecha, condiciones, inquilino, espacio, inicio y fin'
-        });
-    }
+  if (!fecha || !inquilino || !espacio || !inicio || !fin) {
+    return res.status(400).json({
+      error: 'Faltan datos requeridos: fecha, inquilino, espacio, inicio y fin'
+    });
+  }
+
+  try {
+    const registro = new Date(); // fecha actual del sistema
 
     const sql = `
-        INSERT INTO contrato 
-        (registro, fecha, condiciones, inquilino, espacio, inicio, fin, nota) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO contrato (registro, fecha, condiciones, inquilino, espacio, inicio, fin, nota)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
-
     const valores = [
-        registro, fecha, condiciones, inquilino, espacio, inicio, fin, nota || null
+      registro,
+      fecha,
+      condiciones || null,
+      Number(inquilino),
+      Number(espacio),
+      inicio,
+      fin,
+      nota || null
     ];
 
-    conexion.query(sql, valores, (error, results) => {
-        if (error) {
-            return res.status(500).json({
-                error: 'Error al crear el contrato',
-                detalle: error.message
-            });
-        }
-        res.json({ message: 'Contrato creado correctamente' });
-    });
+    const [result] = await conexion.query(sql, valores);
+    res.json({ success: true, message: '✅ Contrato creado correctamente', id: result.insertId });
+  } catch (error) {
+    console.error('❌ Error al crear contrato:', error);
+    res.status(500).json({ error: 'Error al crear contrato', detalle: error.message });
+  }
 };
 
-// Editar un contrato existente
-const editarContrato = (req, res) => {
-    const { id } = req.params;
-    const { registro, fecha, condiciones, inquilino, espacio, inicio, fin, nota } = req.body;
+// Editar contrato
+const editarContrato = async (req, res) => {
+  const { id } = req.params;
+  const { fecha, condiciones, inquilino, espacio, inicio, fin, nota } = req.body;
 
-    if (!registro || !fecha || !condiciones || !inquilino || !espacio || !inicio || !fin) {
-        return res.status(400).json({
-            error: 'Faltan datos requeridos: registro, fecha, condiciones, inquilino, espacio, inicio y fin'
-        });
-    }
+  if (!fecha || !inquilino || !espacio || !inicio || !fin) {
+    return res.status(400).json({
+      error: 'Faltan datos requeridos: fecha, inquilino, espacio, inicio y fin'
+    });
+  }
 
+  try {
     const sql = `
-        UPDATE contrato 
-        SET registro = ?, fecha = ?, condiciones = ?, inquilino = ?, espacio = ?, inicio = ?, fin = ?, nota = ?
-        WHERE id = ?
+      UPDATE contrato
+      SET fecha = ?, condiciones = ?, inquilino = ?, espacio = ?, inicio = ?, fin = ?, nota = ?
+      WHERE id = ?
     `;
-
     const valores = [
-        registro, fecha, condiciones, inquilino, espacio, inicio, fin, nota || null, id
+      fecha,
+      condiciones || null,
+      Number(inquilino),
+      Number(espacio),
+      inicio,
+      fin,
+      nota || null,
+      Number(id)
     ];
 
-    conexion.query(sql, valores, (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al editar el contrato' });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ error: 'Contrato no encontrado' });
-        }
-        res.json({ id, inquilino, espacio, inicio, fin });
-    });
+    const [result] = await conexion.query(sql, valores);
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Contrato no encontrado' });
+
+    res.json({ success: true, message: '✅ Contrato actualizado correctamente', id: Number(id) });
+  } catch (error) {
+    console.error('❌ Error al editar contrato:', error);
+    res.status(500).json({ error: 'Error al editar contrato', detalle: error.message });
+  }
 };
 
-// Eliminar un contrato
-const eliminarContrato = (req, res) => {
-    const { id } = req.params;
-
-    conexion.query('DELETE FROM contrato WHERE id = ?', [id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al eliminar el contrato' });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ error: 'Contrato no encontrado' });
-        }
-        res.status(204).send();
-    });
+// Eliminar contrato
+const eliminarContrato = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [result] = await conexion.query('DELETE FROM contrato WHERE id = ?', [Number(id)]);
+    if (result.affectedRows === 0) return res.status(404).json({ error: 'Contrato no encontrado' });
+    res.status(204).send();
+  } catch (error) {
+    console.error('❌ Error al eliminar contrato:', error);
+    res.status(500).json({ error: 'Error al eliminar contrato', detalle: error.message });
+  }
 };
 
 module.exports = {
-    mostrarContratos,
-    mostrarContrato,
-    crearContrato,
-    editarContrato,
-    eliminarContrato
+  mostrarContratos,
+  mostrarContrato,
+  crearContrato,
+  editarContrato,
+  eliminarContrato
 };

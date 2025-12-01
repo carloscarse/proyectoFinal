@@ -123,11 +123,22 @@ function FormularioEspacio({ onClose, mode = 'create', initialEspacio = null, on
 
       if (isEdit && initialEspacio?.id) {
         await api.put(`/espacio/espacio/${initialEspacio.id}`, payload);
-        setMensaje('✅ Espacio actualizado correctamente');
+setMensaje('✅ Espacio actualizado correctamente');
+
+setTimeout(() => {
+  onClose(initialEspacio.id);
+}, 800);
       } else {
-        await api.post('/espacio/espacio', payload);
-        setMensaje('✅ Espacio registrado correctamente');
-      }
+  const res = await api.post('/espacio/espacio', payload);
+  const nuevoId = res.data?.id ?? res.data?.insertId; // capturamos el id
+  setMensaje('✅ Espacio registrado correctamente');
+
+  // devolvemos el id al padre
+  setTimeout(() => {
+    onClose(nuevoId);
+  }, 800);
+}
+
 
       setError('');
       window.dispatchEvent(new CustomEvent('espacio:refresh'));

@@ -15,7 +15,9 @@ const rol = require('./router/rol');
 const inquilino = require('./router/inquilino');
 const documentacion = require('./router/documentacion');
 const espacio = require('./router/espacio');
-const rubro = require('./router/rubro'); // ✅ agregado
+const rubro = require('./router/rubro');
+const alquiler = require('./router/alquiler');
+const contrato = require('./router/contrato'); // ✅ agregado
 
 const PORT = process.env.PORT;
 
@@ -36,7 +38,7 @@ if (!fs.existsSync(uploadsDir)) {
 }
 app.use('/uploads', express.static(uploadsDir));
 
-// Rutas
+// Rutas principales
 app.use('/', usuario);
 app.use('/auth', auth);
 app.use('/persona', persona);
@@ -44,7 +46,9 @@ app.use('/rol', rol);
 app.use('/inquilino', inquilino);
 app.use('/', documentacion);
 app.use('/espacio', espacio);
-app.use('/rubro', rubro); // ✅ montado
+app.use('/rubro', rubro);
+app.use('/alquiler', alquiler);
+app.use('/contrato', contrato); // ✅ montado
 
 // Ruta de prueba
 app.get('/', (req, res) => {

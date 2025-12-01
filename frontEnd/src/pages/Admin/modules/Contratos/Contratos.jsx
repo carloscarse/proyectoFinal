@@ -6,7 +6,6 @@ function Contratos() {
   return (
     <section className="contratos-container">
       <h1>Gestión de Contratos</h1>
-      <FormularioContrato />
       <ListaContratos />
     </section>
   );
