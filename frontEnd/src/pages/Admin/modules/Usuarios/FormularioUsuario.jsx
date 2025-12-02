@@ -23,17 +23,12 @@ function FormularioUsuario({ onClose }) {
 
   const fetchPersonas = async () => {
     try {
-      console.log('🟡 Llamando a /persona desde frontend...');
       const res = await api.get('/persona');
-      console.log('🟢 Respuesta recibida:', res.data);
-
       const personasConLabel = res.data.map(p => {
         const partes = [p.nombre, p.segundoNombre, p.apellido, p.segundoApellido];
         const label = partes.filter(v => v && v !== 'null').join(' ');
         return { ...p, label };
       });
-
-      console.log('🧩 Lista de personas con label limpio:', personasConLabel);
       setPersonas(personasConLabel);
     } catch (err) {
       console.error('🔴 Error al obtener personas:', err.message);
@@ -42,21 +37,18 @@ function FormularioUsuario({ onClose }) {
 
   const fetchRoles = async () => {
     try {
-      console.log('🟡 Llamando a /rol desde frontend...');
       const res = await api.get('/rol');
       const rolesConLabel = res.data.map(r => ({
         ...r,
-        label: r.rol // 👈 usamos el campo técnico como label
+        label: r.rol
       }));
       setRoles(rolesConLabel);
-      console.log('✅ Roles cargados:', rolesConLabel);
     } catch (err) {
       console.error('❌ Error al obtener roles:', err.message);
     }
   };
 
   useEffect(() => {
-    console.log('🟡 Montando FormularioUsuario...');
     fetchPersonas();
     fetchRoles();
   }, []);
@@ -66,13 +58,11 @@ function FormularioUsuario({ onClose }) {
     const valor = String(value);
 
     if (name === 'persona' && valor === 'nuevo') {
-      console.log('🟡 Abriendo modal de persona desde select');
       setShowPersonaModal(true);
       return;
     }
 
     if (name === 'rol' && valor === 'nuevo') {
-      console.log('🟡 Abriendo modal de rol desde select');
       setShowRolModal(true);
       return;
     }
@@ -95,12 +85,15 @@ function FormularioUsuario({ onClose }) {
       setError('');
       console.log('Usuario creado:', res.data);
 
-      // 👇 Dispara el evento global para refrescar ListaUsuarios
+      // Dispara el evento global para refrescar ListaUsuarios
       window.dispatchEvent(new CustomEvent('usuarios:refresh'));
 
+      // ✅ Devuelve el ID al padre (FormularioPago)
       setTimeout(() => {
         setMensaje('');
-        onClose();
+        if (onClose) {
+          onClose(res.data?.id);
+        }
       }, 1500);
     } catch (err) {
       setError('❌ Error al registrar usuario');

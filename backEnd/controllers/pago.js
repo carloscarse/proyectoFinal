@@ -1,108 +1,152 @@
 const { conexion } = require('../config/dataBase.js');
 
-// Obtener todos los pagos
-const mostrarPagos = (req, res) => {
-    conexion.query('SELECT * FROM pago', (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al obtener los pagos' });
+// Obtener todos los pagos con datos relacionados
+const mostrarPagos = async (req, res) => {
+  try {
+    const sql = `
+      SELECT 
+        p.id,
+        p.fecha,
+        p.registro,
+        p.nota,
+        u.id AS usuario_id,
+        u.usuario AS usuario_nombre,
+        f.id AS factura_id,
+        f.numero AS factura_numero,
+        i.id AS inquilino_id,
+        per.nombre,
+        per.segundoNombre,
+        per.apellido,
+        per.segundoApellido
+      FROM pago p
+      LEFT JOIN usuario u ON p.usuario = u.id
+      LEFT JOIN factura f ON p.factura = f.id
+      LEFT JOIN inquilino i ON p.inquilino = i.id
+      LEFT JOIN persona per ON i.persona = per.id
+    `;
+
+    const [results] = await conexion.query(sql);
+
+    const pagos = results.map((r) => ({
+      id: r.id,
+      fecha: r.fecha,
+      registro: r.registro,
+      nota: r.nota,
+      usuario: { id: r.usuario_id, usuario: r.usuario_nombre },
+      factura: { id: r.factura_id, numero: r.factura_numero },
+      inquilino: {
+        id: r.inquilino_id,
+        persona: {
+          nombre: r.nombre,
+          segundoNombre: r.segundoNombre,
+          apellido: r.apellido,
+          segundoApellido: r.segundoApellido
         }
-        res.json(results);
-    });
+      }
+    }));
+
+    res.json(pagos);
+  } catch (error) {
+    console.error('❌ Error SQL en mostrarPagos:', error.message);
+    res.status(500).json({ error: 'Error al obtener los pagos', detalle: error.message });
+  }
 };
 
 // Obtener un pago por ID
-const mostrarPago = (req, res) => {
+const mostrarPago = async (req, res) => {
+  try {
     const { id } = req.params;
+    const [results] = await conexion.query('SELECT * FROM pago WHERE id = ?', [id]);
 
-    conexion.query('SELECT * FROM pago WHERE id = ?', [id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al obtener el pago' });
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'Pago no encontrado' });
-        }
-        res.json(results[0]);
-    });
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Pago no encontrado' });
+    }
+    res.json(results[0]);
+  } catch (error) {
+    console.error('❌ Error SQL en mostrarPago:', error.message);
+    res.status(500).json({ error: 'Error al obtener el pago', detalle: error.message });
+  }
 };
 
 // Crear un nuevo pago
-const crearPago = (req, res) => {
-    const { registro, fecha, usuario, factura, item, inquilino, nota } = req.body;
+const crearPago = async (req, res) => {
+  try {
+    const { registro, fecha, usuario, factura, inquilino, nota } = req.body;
 
-    if (!registro || !fecha || !usuario || !factura || !item || !inquilino) {
-        return res.status(400).json({
-            error: 'Faltan datos requeridos: registro, fecha, usuario, factura, item e inquilino'
-        });
+    if (!registro || !fecha || !usuario || !factura || !inquilino) {
+      return res.status(400).json({
+        error: 'Faltan datos requeridos: registro, fecha, usuario, factura e inquilino'
+      });
     }
 
     const sql = `
-        INSERT INTO pago 
-        (registro, fecha, usuario, factura, item, inquilino, nota) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO pago (registro, fecha, usuario, factura, inquilino, nota)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
+    const valores = [registro, fecha, usuario, factura, inquilino, nota || null];
 
-    const valores = [registro, fecha, usuario, factura, item, inquilino, nota || null];
+    const [result] = await conexion.query(sql, valores);
 
-    conexion.query(sql, valores, (error, results) => {
-        if (error) {
-            return res.status(500).json({
-                error: 'Error al crear el pago',
-                detalle: error.message
-            });
-        }
-        res.json({ message: 'Pago registrado correctamente' });
-    });
+    res.json({ success: true, message: '✅ Pago registrado correctamente', id: result.insertId });
+  } catch (error) {
+    console.error('❌ Error SQL en crearPago:', error.message);
+    res.status(500).json({ error: 'Error al crear el pago', detalle: error.message });
+  }
 };
 
 // Editar un pago existente
-const editarPago = (req, res) => {
+const editarPago = async (req, res) => {
+  try {
     const { id } = req.params;
-    const { registro, fecha, usuario, factura, item, inquilino, nota } = req.body;
+    const { registro, fecha, usuario, factura, inquilino, nota } = req.body;
 
-    if (!registro || !fecha || !usuario || !factura || !item || !inquilino) {
-        return res.status(400).json({
-            error: 'Faltan datos requeridos: registro, fecha, usuario, factura, item e inquilino'
-        });
+    if (!registro || !fecha || !usuario || !factura || !inquilino) {
+      return res.status(400).json({
+        error: 'Faltan datos requeridos: registro, fecha, usuario, factura e inquilino'
+      });
     }
 
     const sql = `
-        UPDATE pago 
-        SET registro = ?, fecha = ?, usuario = ?, factura = ?, item = ?, inquilino = ?, nota = ?
-        WHERE id = ?
+      UPDATE pago
+      SET registro = ?, fecha = ?, usuario = ?, factura = ?, inquilino = ?, nota = ?
+      WHERE id = ?
     `;
+    const valores = [registro, fecha, usuario, factura, inquilino, nota || null, id];
 
-    const valores = [registro, fecha, usuario, factura, item, inquilino, nota || null, id];
+    const [result] = await conexion.query(sql, valores);
 
-    conexion.query(sql, valores, (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al editar el pago' });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ error: 'Pago no encontrado' });
-        }
-        res.json({ id, usuario, factura, item, inquilino });
-    });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Pago no encontrado' });
+    }
+
+    res.json({ success: true, message: '✅ Pago actualizado correctamente', id: Number(id) });
+  } catch (error) {
+    console.error('❌ Error SQL en editarPago:', error.message);
+    res.status(500).json({ error: 'Error al editar el pago', detalle: error.message });
+  }
 };
 
 // Eliminar un pago
-const eliminarPago = (req, res) => {
+const eliminarPago = async (req, res) => {
+  try {
     const { id } = req.params;
+    const [result] = await conexion.query('DELETE FROM pago WHERE id = ?', [id]);
 
-    conexion.query('DELETE FROM pago WHERE id = ?', [id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al eliminar el pago' });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ error: 'Pago no encontrado' });
-        }
-        res.status(204).send();
-    });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Pago no encontrado' });
+    }
+
+    res.json({ success: true, message: '✅ Pago eliminado correctamente' });
+  } catch (error) {
+    console.error('❌ Error SQL en eliminarPago:', error.message);
+    res.status(500).json({ error: 'Error al eliminar el pago', detalle: error.message });
+  }
 };
 
 module.exports = {
-    mostrarPagos,
-    mostrarPago,
-    crearPago,
-    editarPago,
-    eliminarPago
+  mostrarPagos,
+  mostrarPago,
+  crearPago,
+  editarPago,
+  eliminarPago
 };

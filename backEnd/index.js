@@ -17,7 +17,10 @@ const documentacion = require('./router/documentacion');
 const espacio = require('./router/espacio');
 const rubro = require('./router/rubro');
 const alquiler = require('./router/alquiler');
-const contrato = require('./router/contrato'); // ✅ agregado
+const contrato = require('./router/contrato');
+const pago = require('./router/pago');        // ✅ agregado
+const itempago = require('./router/itemPago'); // ✅ agregado
+const factura = require('./router/factura');   // ✅ nuevo router de facturas
 
 const PORT = process.env.PORT;
 
@@ -48,7 +51,10 @@ app.use('/', documentacion);
 app.use('/espacio', espacio);
 app.use('/rubro', rubro);
 app.use('/alquiler', alquiler);
-app.use('/contrato', contrato); // ✅ montado
+app.use('/contrato', contrato);
+app.use('/pago', pago);          // ✅ montado
+app.use('/itempago', itempago);  // ✅ montado
+app.use('/factura', factura);    // ✅ montado
 
 // Ruta de prueba
 app.get('/', (req, res) => {
