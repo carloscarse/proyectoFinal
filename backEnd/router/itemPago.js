@@ -5,17 +5,19 @@ const router = express.Router();
 const {
   mostrarItemsPago,
   mostrarItemPago,
+  mostrarItemsPorPago, // 👈 nuevo import
   crearItemPago,
   editarItemPago,
   eliminarItemPago
 } = require('../controllers/itemPago');
 
 // Rutas principales de itempago
-router.get('/itempagos', mostrarItemsPago);       // ✅ listar todos
-router.get('/itempago/:id', mostrarItemPago);     // ✅ obtener uno por id
-router.post('/itempago', crearItemPago);          // ✅ crear nuevo
-router.put('/itempago/:id', editarItemPago);      // ✅ editar existente
-router.delete('/itempago/:id', eliminarItemPago); // ✅ eliminar
+router.get('/', mostrarItemsPago);             // ✅ listar todos
+router.get('/:id', mostrarItemPago);           // ✅ obtener uno por id
+router.get('/pago/:id', mostrarItemsPorPago);  // ✅ obtener todos los ítems de un pago
+router.post('/', crearItemPago);               // ✅ crear nuevo
+router.put('/:id', editarItemPago);            // ✅ editar existente
+router.delete('/:id', eliminarItemPago);       // ✅ eliminar
 
 // Ruta de prueba opcional
 router.get('/itempagos-prueba', (req, res) => {

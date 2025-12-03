@@ -27,6 +27,22 @@ const mostrarItemPago = async (req, res) => {
   }
 };
 
+// ✅ Obtener todos los ítems de un pago específico
+const mostrarItemsPorPago = async (req, res) => {
+  try {
+    const { id } = req.params; // id del pago
+    const [results] = await conexion.query('SELECT * FROM itempago WHERE pago = ?', [id]);
+
+    if (results.length === 0) {
+      return res.json([]); // devolvemos lista vacía si no hay ítems
+    }
+    res.json(results);
+  } catch (error) {
+    console.error('❌ Error SQL en mostrarItemsPorPago:', error.message);
+    res.status(500).json({ error: 'Error al obtener los ítems del pago', detalle: error.message });
+  }
+};
+
 // Crear un nuevo item de pago
 const crearItemPago = async (req, res) => {
   try {
@@ -105,6 +121,7 @@ const eliminarItemPago = async (req, res) => {
 module.exports = {
   mostrarItemsPago,
   mostrarItemPago,
+  mostrarItemsPorPago, // 👈 nuevo export
   crearItemPago,
   editarItemPago,
   eliminarItemPago

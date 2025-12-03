@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../../../endpoints/endpoints';
+import VerPago from './VerPago';
 import FormularioPago from './FormularioPago';
 import './ListaPagos.css';
 
@@ -16,6 +17,18 @@ function ListaPagos() {
     window.addEventListener('pagos:refresh', handler);
     return () => window.removeEventListener('pagos:refresh', handler);
   }, []);
+
+  const formatoFechaHora = (iso) => {
+    if (!iso || isNaN(Date.parse(iso))) return '';
+    const f = new Date(iso);
+    const dd = String(f.getDate()).padStart(2, '0');
+    const mm = String(f.getMonth() + 1).padStart(2, '0');
+    const yyyy = f.getFullYear();
+    const hh = String(f.getHours()).padStart(2, '0');
+    const min = String(f.getMinutes()).padStart(2, '0');
+    const ss = String(f.getSeconds()).padStart(2, '0');
+    return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+  };
 
   const fetchInquilinoLabels = async () => {
     try {
@@ -115,7 +128,7 @@ function ListaPagos() {
         <tbody>
           {pagos.map((p) => (
             <tr key={p.id}>
-              <td>{p.fecha}</td>
+              <td>{formatoFechaHora(p.fecha)}</td>
               <td>{p.usuario?.usuario}</td>
               <td>#{p.factura?.numero}</td>
               <td>{p.inquilinoLabel}</td>
@@ -158,35 +171,16 @@ function ListaPagos() {
         </tbody>
       </table>
 
-      {/* Modal Ver Pago */}
       {modoVer && pagoSeleccionado && (
-        <div className="modal-overlay">
-          <div className="usuarios-form">
-            <h4 className="text-center mb-3">Datos del Pago</h4>
-            <div className="form-scroll">
-              <p><strong>ID:</strong> {pagoSeleccionado.id}</p>
-              <p><strong>Fecha:</strong> {pagoSeleccionado.fecha}</p>
-              <p><strong>Usuario:</strong> {pagoSeleccionado.usuario?.usuario}</p>
-              <p><strong>Factura:</strong> #{pagoSeleccionado.factura?.numero}</p>
-              <p><strong>Inquilino:</strong> {pagoSeleccionado.inquilinoLabel}</p>
-              <p><strong>Nota:</strong> {pagoSeleccionado.nota}</p>
-            </div>
-            <div className="form-buttons">
-              <button
-                className="btn btn-secondary w-100"
-                onClick={() => {
-                  setModoVer(false);
-                  setPagoSeleccionado(null);
-                }}
-              >
-                Aceptar
-              </button>
-            </div>
-          </div>
-        </div>
+        <VerPago
+          pago={pagoSeleccionado}
+          onClose={() => {
+            setModoVer(false);
+            setPagoSeleccionado(null);
+          }}
+        />
       )}
 
-      {/* Modal Editar Pago */}
       {modoEdicion && pagoSeleccionado && (
         <div className="modal-overlay">
           <FormularioPago

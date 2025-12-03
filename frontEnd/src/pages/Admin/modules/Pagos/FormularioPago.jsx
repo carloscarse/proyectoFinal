@@ -4,10 +4,12 @@ import { api } from '../../../../endpoints/endpoints';
 import FormularioUsuario from '../Usuarios/FormularioUsuario';
 import FormularioInquilino from '../Inquilinos/FormularioInquilino';
 import FormularioFactura from '../Facturacion/FormularioFactura';
+import FormularioItemPago from '../ItemPago/FormularioItemPago';
 import './FormularioPago.css';
 
 function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved }) {
   const isEdit = mode === 'edit';
+  const isView = mode === 'view';
 
   const [formData, setFormData] = useState({
     fecha: '',
@@ -20,14 +22,18 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
   const [usuarios, setUsuarios] = useState([]);
   const [facturas, setFacturas] = useState([]);
   const [inquilinos, setInquilinos] = useState([]);
+  const [itemsPago, setItemsPago] = useState([]);
+
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
+
   const [showNuevoUsuario, setShowNuevoUsuario] = useState(false);
   const [showNuevoInquilino, setShowNuevoInquilino] = useState(false);
   const [showNuevaFactura, setShowNuevaFactura] = useState(false);
+  const [showNuevoItemPago, setShowNuevoItemPago] = useState(false);
 
   useEffect(() => {
-    if (isEdit && initialPago) {
+    if ((isEdit || isView) && initialPago) {
       setFormData({
         fecha: initialPago.fecha ? initialPago.fecha.replace(' ', 'T').slice(0, 16) : '',
         usuario: String(initialPago.usuario?.id ?? ''),
@@ -35,20 +41,31 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
         inquilino: String(initialPago.inquilino?.id ?? ''),
         nota: initialPago.nota ?? ''
       });
+
+      // 🔄 cargar ítems desde backend si estamos editando
+      const fetchItems = async () => {
+        try {
+          const res = await api.get(`/itempago/pago/${initialPago.id}`);
+          setItemsPago(Array.isArray(res.data) ? res.data : []);
+        } catch (err) {
+          console.error('❌ Error al obtener ítems de pago:', err?.message || err);
+          setItemsPago([]);
+        }
+      };
+      if (isEdit && initialPago.id) fetchItems();
+      else setItemsPago(Array.isArray(initialPago.itemsPago) ? initialPago.itemsPago : []);
     }
-  }, [isEdit, initialPago]);
+  }, [isEdit, isView, initialPago]);
 
   const fetchUsuarios = async () => {
     try {
       const res = await api.get(`/usuarios?ts=${Date.now()}`);
       const lista = Array.isArray(res.data) ? res.data : [];
-
       const usuariosConLabel = lista.map((u) => {
         const partes = [u.nombre, u.segundoNombre, u.apellido, u.segundoApellido];
         const label = partes.filter(v => v && v !== 'null').join(' ').trim();
         return { id: String(u.id), label: label || u.usuario || `Usuario #${u.id}` };
       });
-
       setUsuarios(usuariosConLabel);
     } catch (err) {
       console.error('❌ Error al obtener usuarios:', err?.message || err);
@@ -97,25 +114,36 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
     fetchFacturas();
     fetchInquilinos();
   }, []);
-    const handleChange = (e) => {
+
+  const handleChange = (e) => {
     const { name, value } = e.target;
 
-    if (name === 'usuario' && value === 'nuevo') {
-      setShowNuevoUsuario(true);
-      return;
-    }
-
-    if (name === 'inquilino' && value === 'nuevo') {
-      setShowNuevoInquilino(true);
-      return;
-    }
-
-    if (name === 'factura' && value === 'nuevo') {
-      setShowNuevaFactura(true);
-      return;
-    }
+    if (name === 'usuario' && value === 'nuevo') { setShowNuevoUsuario(true); return; }
+    if (name === 'inquilino' && value === 'nuevo') { setShowNuevoInquilino(true); return; }
+    if (name === 'factura' && value === 'nuevo') { setShowNuevaFactura(true); return; }
 
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleGuardarItemsPago = async (pagoId) => {
+    try {
+      for (const item of itemsPago) {
+        await api.post('/itempago', { ...item, pago: pagoId });
+      }
+    } catch (err) {
+      console.error('❌ Error al guardar ítems de pago:', err?.response?.data || err.message);
+      setError('❌ Error al guardar ítems de pago');
+    }
+  };
+
+  const handleEliminarItem = async (id) => {
+    try {
+      await api.delete(`/itempago/${id}`);
+      setItemsPago(prev => prev.filter(item => item.id !== id));
+    } catch (err) {
+      console.error('❌ Error al eliminar ítem de pago:', err?.message || err);
+      alert('Error al eliminar ítem de pago');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -130,15 +158,19 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
         registro: new Date().toISOString().slice(0, 19).replace('T', ' ')
       };
 
+      let pagoId;
       if (isEdit && initialPago?.id) {
         await api.put(`/pago/pago/${initialPago.id}`, payload);
+        pagoId = initialPago.id;
         setMensaje('✅ Pago actualizado correctamente');
       } else {
-        await api.post('/pago/pago', payload);
+        const res = await api.post('/pago/pago', payload);
+        pagoId = res.data.id;
         setMensaje('✅ Pago registrado correctamente');
       }
 
-      setError('');
+      await handleGuardarItemsPago(pagoId);
+            setError('');
       window.dispatchEvent(new CustomEvent('pagos:refresh'));
       if (onSaved) onSaved();
 
@@ -153,9 +185,13 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
     }
   };
 
+  const total = itemsPago.reduce((acc, item) => acc + Number(item.monto || 0), 0);
+
   return (
     <div className="usuarios-form">
-      <h4 className="mb-3">{isEdit ? 'Editar Pago' : 'Registrar Pago'}</h4>
+      <h4 className="mb-3">
+        {isView ? 'Ver Pago' : isEdit ? 'Editar Pago' : 'Registrar Pago'}
+      </h4>
 
       <form onSubmit={handleSubmit}>
         <label>Fecha</label>
@@ -165,52 +201,146 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
           value={formData.fecha}
           onChange={handleChange}
           required
+          disabled={isView}
         />
 
         <label>Usuario</label>
-        <select name="usuario" value={formData.usuario} onChange={handleChange} required>
+        <select
+          name="usuario"
+          value={formData.usuario}
+          onChange={handleChange}
+          required
+          disabled={isView}
+        >
           <option value="">-- Seleccione --</option>
-          <option value="nuevo">➕ Nuevo</option>
+          {!isView && <option value="nuevo">➕ Nuevo</option>}
           {usuarios.map((u) => (
             <option key={u.id} value={u.id}>{u.label}</option>
           ))}
         </select>
 
         <label>Factura</label>
-        <select name="factura" value={formData.factura} onChange={handleChange} required>
+        <select
+          name="factura"
+          value={formData.factura}
+          onChange={handleChange}
+          required
+          disabled={isView}
+        >
           <option value="">-- Seleccione --</option>
-          <option value="nuevo">➕ Nueva factura</option>
+          {!isView && <option value="nuevo">➕ Nueva factura</option>}
           {facturas.map((f) => (
             <option key={f.id} value={f.id}>{f.label}</option>
           ))}
         </select>
 
         <label>Inquilino</label>
-        <select name="inquilino" value={formData.inquilino} onChange={handleChange} required>
+        <select
+          name="inquilino"
+          value={formData.inquilino}
+          onChange={handleChange}
+          required
+          disabled={isView}
+        >
           <option value="">-- Seleccione --</option>
-          <option value="nuevo">➕ Nuevo</option>
+          {!isView && <option value="nuevo">➕ Nuevo</option>}
           {inquilinos.map((i) => (
             <option key={i.id} value={i.id}>{i.label}</option>
           ))}
         </select>
 
+        {/* Ítems de Pago */}
+        <div className="mt-3">
+          {!isView && (
+            <button
+              type="button"
+              className="btn btn-outline-info btn-sm mb-2"
+              onClick={() => setShowNuevoItemPago(true)}
+            >
+              ➕ Agregar Ítem de Pago
+            </button>
+          )}
+
+          {itemsPago.length > 0 ? (
+            <ul className="list-group mb-2">
+              {itemsPago.map((item) => (
+                <li
+                  key={item.id}
+                  className="list-group-item d-flex justify-content-between align-items-center"
+                >
+                  <span>
+                    {item.cantidad} × {item.item} | Precio: ${item.precio} | Monto: ${item.monto}
+                  </span>
+                  {!isView && (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleEliminarItem(item.id)}
+                    >
+                      🗑️
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-muted">Este pago no tiene ítems registrados.</p>
+          )}
+
+          <div className="d-flex justify-content-end mb-3">
+            <label className="me-2 fw-bold">Total:</label>
+            <label>${total}</label>
+          </div>
+        </div>
+
         <label>Nota</label>
-        <textarea name="nota" value={formData.nota} onChange={handleChange} />
+        <textarea
+          name="nota"
+          value={formData.nota}
+          onChange={handleChange}
+          disabled={isView}
+        />
 
         {mensaje && <p className="text-success mt-2">{mensaje}</p>}
         {error && <p className="text-danger mt-2">{error}</p>}
 
-        <div className="d-flex justify-content-end gap-2 mt-3">
-          <button type="submit" className="btn btn-success btn-sm">
-            {isEdit ? 'Guardar cambios' : 'Registrar'}
-          </button>
-          <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>
-            Cancelar
-          </button>
-        </div>
+        {!isView && (
+          <div className="d-flex justify-content-end gap-2 mt-3">
+            <button type="submit" className="btn btn-success btn-sm">
+              {isEdit ? 'Guardar cambios' : 'Registrar'}
+            </button>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>
+              Cancelar
+            </button>
+          </div>
+        )}
+
+        {isView && (
+          <div className="d-flex justify-content-end mt-3">
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>
+              Cerrar
+            </button>
+          </div>
+        )}
       </form>
 
-      {showNuevoUsuario && createPortal(
+      {/* Modales secundarios */}
+      {!isView && showNuevoItemPago && createPortal(
+        <div className="modal-overlay">
+          <FormularioItemPago
+            onClose={(nuevoItem, otro) => {
+              setShowNuevoItemPago(false);
+              if (nuevoItem) {
+                setItemsPago(prev => [...prev, nuevoItem]);
+                if (otro) setTimeout(() => setShowNuevoItemPago(true), 50);
+              }
+            }}
+          />
+        </div>,
+        document.getElementById('modals-root')
+      )}
+
+      {!isView && showNuevoUsuario && createPortal(
         <div className="modal-overlay">
           <FormularioUsuario
             onClose={async (nuevoId) => {
@@ -225,7 +355,7 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
         document.getElementById('modals-root')
       )}
 
-      {showNuevaFactura && createPortal(
+      {!isView && showNuevaFactura && createPortal(
         <div className="modal-overlay">
           <FormularioFactura
             onFacturaSeleccionada={async (nuevoId) => {
@@ -240,7 +370,7 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
         document.getElementById('modals-root')
       )}
 
-      {showNuevoInquilino && createPortal(
+      {!isView && showNuevoInquilino && createPortal(
         <div className="modal-overlay">
           <FormularioInquilino
             onClose={async (nuevoId) => {
