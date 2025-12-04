@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { api } from '../../../../endpoints/endpoints';
 import FormularioUsuario from '../Usuarios/FormularioUsuario';
 import FormularioInquilino from '../Inquilinos/FormularioInquilino';
-import FormularioFactura from '../Facturacion/FormularioFactura';
 import FormularioItemPago from '../ItemPago/FormularioItemPago';
 import './FormularioPago.css';
 
@@ -14,13 +13,11 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
   const [formData, setFormData] = useState({
     fecha: '',
     usuario: '',
-    factura: '',
     inquilino: '',
     nota: ''
   });
 
   const [usuarios, setUsuarios] = useState([]);
-  const [facturas, setFacturas] = useState([]);
   const [inquilinos, setInquilinos] = useState([]);
   const [itemsPago, setItemsPago] = useState([]);
 
@@ -29,7 +26,6 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
 
   const [showNuevoUsuario, setShowNuevoUsuario] = useState(false);
   const [showNuevoInquilino, setShowNuevoInquilino] = useState(false);
-  const [showNuevaFactura, setShowNuevaFactura] = useState(false);
   const [showNuevoItemPago, setShowNuevoItemPago] = useState(false);
 
   useEffect(() => {
@@ -37,7 +33,6 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
       setFormData({
         fecha: initialPago.fecha ? initialPago.fecha.replace(' ', 'T').slice(0, 16) : '',
         usuario: String(initialPago.usuario?.id ?? ''),
-        factura: String(initialPago.factura?.id ?? ''),
         inquilino: String(initialPago.inquilino?.id ?? ''),
         nota: initialPago.nota ?? ''
       });
@@ -73,16 +68,6 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
     }
   };
 
-  const fetchFacturas = async () => {
-    try {
-      const res = await api.get('/factura/facturas');
-      const lista = Array.isArray(res.data) ? res.data : [];
-      setFacturas(lista.map(f => ({ id: String(f.id), label: `#${f.numero} - ${f.estado}` })));
-    } catch (err) {
-      console.error('❌ Error al obtener facturas:', err?.message || err);
-    }
-  };
-
   const fetchInquilinos = async () => {
     try {
       const res = await api.get('/inquilino/inquilinos');
@@ -111,7 +96,6 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
 
   useEffect(() => {
     fetchUsuarios();
-    fetchFacturas();
     fetchInquilinos();
   }, []);
 
@@ -120,7 +104,6 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
 
     if (name === 'usuario' && value === 'nuevo') { setShowNuevoUsuario(true); return; }
     if (name === 'inquilino' && value === 'nuevo') { setShowNuevoInquilino(true); return; }
-    if (name === 'factura' && value === 'nuevo') { setShowNuevaFactura(true); return; }
 
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -152,12 +135,10 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
       const payload = {
         fecha: formData.fecha,
         usuario: formData.usuario ? Number(formData.usuario) : null,
-        factura: formData.factura ? Number(formData.factura) : null,
         inquilino: formData.inquilino ? Number(formData.inquilino) : null,
         nota: formData.nota || null,
         registro: new Date().toISOString().slice(0, 19).replace('T', ' ')
       };
-
       let pagoId;
       if (isEdit && initialPago?.id) {
         await api.put(`/pago/pago/${initialPago.id}`, payload);
@@ -170,7 +151,7 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
       }
 
       await handleGuardarItemsPago(pagoId);
-            setError('');
+      setError('');
       window.dispatchEvent(new CustomEvent('pagos:refresh'));
       if (onSaved) onSaved();
 
@@ -216,21 +197,6 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
           {!isView && <option value="nuevo">➕ Nuevo</option>}
           {usuarios.map((u) => (
             <option key={u.id} value={u.id}>{u.label}</option>
-          ))}
-        </select>
-
-        <label>Factura</label>
-        <select
-          name="factura"
-          value={formData.factura}
-          onChange={handleChange}
-          required
-          disabled={isView}
-        >
-          <option value="">-- Seleccione --</option>
-          {!isView && <option value="nuevo">➕ Nueva factura</option>}
-          {facturas.map((f) => (
-            <option key={f.id} value={f.id}>{f.label}</option>
           ))}
         </select>
 
@@ -348,21 +314,6 @@ function FormularioPago({ onClose, mode = 'create', initialPago = null, onSaved 
               if (nuevoId) {
                 await fetchUsuarios();
                 setFormData(prev => ({ ...prev, usuario: String(nuevoId) }));
-              }
-            }}
-          />
-        </div>,
-        document.getElementById('modals-root')
-      )}
-
-      {!isView && showNuevaFactura && createPortal(
-        <div className="modal-overlay">
-          <FormularioFactura
-            onFacturaSeleccionada={async (nuevoId) => {
-              setShowNuevaFactura(false);
-              if (nuevoId) {
-                await fetchFacturas();
-                setFormData(prev => ({ ...prev, factura: String(nuevoId) }));
               }
             }}
           />

@@ -2,23 +2,23 @@ const express = require('express');
 const router = express.Router();
 
 const {
-    mostrarFacturas,
-    mostrarFactura,
-    crearFactura,
-    editarFactura,
-    eliminarFactura
+  mostrarFacturas,
+  mostrarFactura,
+  crearFactura,
+  editarFactura,
+  eliminarFactura
 } = require('../controllers/factura');
 
 // Facturas
-router.get("/facturas", mostrarFacturas);
-router.get("/factura/:id", mostrarFactura);
-router.post("/factura", crearFactura);
-router.put("/factura/:id", editarFactura);
-router.delete("/factura/:id", eliminarFactura);
+router.get('/', mostrarFacturas);          // GET /factura → lista todas las facturas
+router.get('/:id', mostrarFactura);        // GET /factura/:id → obtiene una factura por ID
+router.post('/', crearFactura);            // POST /factura → crea una nueva factura
+router.put('/:id', editarFactura);         // PUT /factura/:id → edita una factura existente
+router.delete('/:id', eliminarFactura);    // DELETE /factura/:id → elimina una factura
 
 // Ruta de prueba
-router.get('/facturas-prueba', (req, res) => {
-    res.json([]); // Devuelve un array vacío solo para probar
+router.get('/prueba', (req, res) => {
+  res.json([]); // Devuelve un array vacío solo para probar
 });
 
 module.exports = router;

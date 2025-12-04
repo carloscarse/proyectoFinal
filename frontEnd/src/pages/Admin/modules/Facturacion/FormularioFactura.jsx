@@ -1,178 +1,139 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
-import FormularioInquilino from '../Inquilinos/FormularioInquilino';
+import { useState, useEffect } from "react";
+import { api } from "../../../../endpoints/endpoints";
+import FormularioInquilino from "../Inquilinos/FormularioInquilino";
 
-const FormularioFactura = ({ onFacturaSeleccionada }) => {
-  const [fecha, setFecha] = useState('');
-  const [numero, setNumero] = useState('');
-  const [estado, setEstado] = useState('emitida');
-  const [inquilino, setInquilino] = useState('');
-  const [nota, setNota] = useState('');
+function FormularioFactura({ onClose, onCreacion }) {
+  const [numero, setNumero] = useState("");
+  const [fecha, setFecha] = useState("");
+  const [estado, setEstado] = useState("emitida");
+  const [inquilino, setInquilino] = useState("");
+  const [nota, setNota] = useState("");
   const [inquilinos, setInquilinos] = useState([]);
-  const [showNuevoInquilino, setShowNuevoInquilino] = useState(false);
+  const [mostrarModalInquilino, setMostrarModalInquilino] = useState(false);
 
-  useEffect(() => {
-    fetch('http://localhost:8000/inquilino/inquilinos')
-      .then(res => res.json())
-      .then(async data => {
-        const lista = Array.isArray(data) ? data : [];
-        const inquilinosConLabel = await Promise.all(
-          lista.map(async (i) => {
-            let label = `Inquilino #${i.id}`;
-            try {
-              if (i.persona) {
-                const resPersona = await fetch(`http://localhost:8000/persona/${i.persona}`);
-                const p = await resPersona.json();
-                const partes = [p.nombre, p.segundoNombre, p.apellido, p.segundoApellido];
-                label = partes.filter(v => v && v !== 'null').join(' ').trim() || label;
-              }
-            } catch (err) {
-              console.error(`❌ Error al obtener persona ${i.persona}:`, err);
-            }
-            return { id: String(i.id), label };
-          })
-        );
-        setInquilinos(inquilinosConLabel);
-      })
-      .catch(err => console.error('❌ Error al cargar inquilinos:', err));
-  }, []);
-
-  const handleInquilinoChange = (e) => {
-    const value = e.target.value;
-    if (value === 'nuevo') {
-      setShowNuevoInquilino(true);
-    } else {
-      setInquilino(value);
+  const cargarInquilinos = async () => {
+    try {
+      const res = await api.get("/inquilino");
+      const data = Array.isArray(res.data) ? res.data : [];
+      setInquilinos(data);
+    } catch (err) {
+      console.error("❌ Error al obtener inquilinos:", err);
     }
   };
+
+  useEffect(() => {
+    cargarInquilinos();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const nuevaFactura = {
+    const datos = {
+      numero,
       fecha,
-      numero: Number(numero),
       estado,
-      inquilino: Number(inquilino),
-      nota
+      inquilino,
+      nota,
     };
 
     try {
-      const res = await fetch('http://localhost:8000/factura/factura', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(nuevaFactura)
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        onFacturaSeleccionada && onFacturaSeleccionada(data.id);
-      } else {
-        alert('❌ Error al crear factura: ' + data.error);
-      }
+      const res = await api.post("/factura", datos);
+      if (onCreacion) onCreacion(res.data);
+      window.dispatchEvent(new CustomEvent("facturas:refresh"));
+      if (onClose) onClose();
     } catch (err) {
-      console.error('❌ Error en el registro de factura:', err);
+      console.error("❌ Error al registrar factura:", err);
+    }
+  };
+
+  const handleNuevoInquilino = () => {
+    setMostrarModalInquilino(true);
+  };
+
+  const handleCerrarModalInquilino = (nuevo) => {
+    setMostrarModalInquilino(false);
+    if (nuevo) {
+      cargarInquilinos();
+      setInquilino(nuevo.id);
     }
   };
 
   return (
     <>
-      <h5>Nueva Factura</h5>
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3">
-          <Form.Label>Fecha</Form.Label>
-          <Form.Control
+      <form className="facturacion-form" onSubmit={handleSubmit}>
+        <label>
+          Número:
+          <input
+            type="text"
+            value={numero}
+            onChange={(e) => setNumero(e.target.value)}
+            required
+          />
+        </label>
+
+        <label>
+          Fecha:
+          <input
             type="datetime-local"
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
             required
           />
-        </Form.Group>
+        </label>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Número</Form.Label>
-          <Form.Control
-            type="number"
-            value={numero}
-            onChange={(e) => setNumero(e.target.value)}
-            required
-          />
-        </Form.Group>
-
-        <Form.Group className="mb-3">
-          <Form.Label>Estado</Form.Label>
-          <Form.Select value={estado} onChange={(e) => setEstado(e.target.value)}>
+        <label>
+          Estado:
+          <select value={estado} onChange={(e) => setEstado(e.target.value)}>
             <option value="emitida">Emitida</option>
             <option value="pagada">Pagada</option>
-          </Form.Select>
-        </Form.Group>
+            <option value="anulada">Anulada</option>
+          </select>
+        </label>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Inquilino</Form.Label>
-          <Form.Select value={inquilino} onChange={handleInquilinoChange} required>
-            <option value="">-- Seleccione --</option>
+        <label>
+          Inquilino:
+          <select
+            value={inquilino}
+            onChange={(e) => {
+              if (e.target.value === "nuevo") {
+                handleNuevoInquilino();
+              } else {
+                setInquilino(e.target.value);
+              }
+            }}
+            required
+          >
             <option value="nuevo">➕ Nuevo</option>
-            {inquilinos.map(i => (
-              <option key={i.id} value={i.id}>{i.label}</option>
-            ))}
-          </Form.Select>
-        </Form.Group>
+            {inquilinos.map((inq) => {
+              const p = inq.persona;
+              const label = [p.nombre, p.segundoNombre, p.apellido, p.segundoApellido]
+                .filter((v) => v && v !== "null")
+                .join(" ");
+              return (
+                <option key={inq.id} value={inq.id}>
+                  {label}
+                </option>
+              );
+            })}
+          </select>
+        </label>
 
-        <Form.Group className="mb-3">
-          <Form.Label>Nota</Form.Label>
-          <Form.Control
-            as="textarea"
-            rows={2}
+        <label>
+          Nota:
+          <textarea
             value={nota}
             onChange={(e) => setNota(e.target.value)}
-          />
-        </Form.Group>
+          ></textarea>
+        </label>
 
-        <Button variant="primary" type="submit">
-          Guardar
-        </Button>
-      </Form>
+        <button type="submit">GUARDAR</button>
+      </form>
 
-      {showNuevoInquilino && (
-        <Modal show onHide={() => setShowNuevoInquilino(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>Nuevo Inquilino</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <FormularioInquilino
-              onClose={async (nuevoId) => {
-                setShowNuevoInquilino(false);
-                if (nuevoId) {
-                  // Refrescar lista y seleccionar el nuevo
-                  const res = await fetch('http://localhost:8000/inquilino/inquilinos');
-                  const lista = await res.json();
-                  const inquilinosConLabel = await Promise.all(
-                    lista.map(async (i) => {
-                      let label = `Inquilino #${i.id}`;
-                      try {
-                        if (i.persona) {
-                          const resPersona = await fetch(`http://localhost:8000/persona/${i.persona}`);
-                          const p = await resPersona.json();
-                          const partes = [p.nombre, p.segundoNombre, p.apellido, p.segundoApellido];
-                          label = partes.filter(v => v && v !== 'null').join(' ').trim() || label;
-                        }
-                      } catch (err) {
-                        console.error(`❌ Error al obtener persona ${i.persona}:`, err);
-                      }
-                      return { id: String(i.id), label };
-                    })
-                  );
-                  setInquilinos(inquilinosConLabel);
-                  setInquilino(String(nuevoId));
-                }
-              }}
-            />
-          </Modal.Body>
-        </Modal>
+      {mostrarModalInquilino && (
+        <FormularioInquilino onClose={handleCerrarModalInquilino} />
       )}
     </>
   );
-};
+}
 
 export default FormularioFactura;

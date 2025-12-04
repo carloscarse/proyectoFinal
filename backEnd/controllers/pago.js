@@ -11,8 +11,6 @@ const mostrarPagos = async (req, res) => {
         p.nota,
         u.id AS usuario_id,
         u.usuario AS usuario_nombre,
-        f.id AS factura_id,
-        f.numero AS factura_numero,
         i.id AS inquilino_id,
         per.nombre,
         per.segundoNombre,
@@ -20,7 +18,6 @@ const mostrarPagos = async (req, res) => {
         per.segundoApellido
       FROM pago p
       LEFT JOIN usuario u ON p.usuario = u.id
-      LEFT JOIN factura f ON p.factura = f.id
       LEFT JOIN inquilino i ON p.inquilino = i.id
       LEFT JOIN persona per ON i.persona = per.id
     `;
@@ -33,7 +30,6 @@ const mostrarPagos = async (req, res) => {
       registro: r.registro,
       nota: r.nota,
       usuario: { id: r.usuario_id, usuario: r.usuario_nombre },
-      factura: { id: r.factura_id, numero: r.factura_numero },
       inquilino: {
         id: r.inquilino_id,
         persona: {
@@ -71,19 +67,19 @@ const mostrarPago = async (req, res) => {
 // Crear un nuevo pago
 const crearPago = async (req, res) => {
   try {
-    const { registro, fecha, usuario, factura, inquilino, nota } = req.body;
+    const { registro, fecha, usuario, inquilino, nota } = req.body;
 
-    if (!registro || !fecha || !usuario || !factura || !inquilino) {
+    if (!registro || !fecha || !usuario || !inquilino) {
       return res.status(400).json({
-        error: 'Faltan datos requeridos: registro, fecha, usuario, factura e inquilino'
+        error: 'Faltan datos requeridos: registro, fecha, usuario e inquilino'
       });
     }
 
     const sql = `
-      INSERT INTO pago (registro, fecha, usuario, factura, inquilino, nota)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO pago (registro, fecha, usuario, inquilino, nota)
+      VALUES (?, ?, ?, ?, ?)
     `;
-    const valores = [registro, fecha, usuario, factura, inquilino, nota || null];
+    const valores = [registro, fecha, usuario, inquilino, nota || null];
 
     const [result] = await conexion.query(sql, valores);
 
@@ -98,20 +94,20 @@ const crearPago = async (req, res) => {
 const editarPago = async (req, res) => {
   try {
     const { id } = req.params;
-    const { registro, fecha, usuario, factura, inquilino, nota } = req.body;
+    const { registro, fecha, usuario, inquilino, nota } = req.body;
 
-    if (!registro || !fecha || !usuario || !factura || !inquilino) {
+    if (!registro || !fecha || !usuario || !inquilino) {
       return res.status(400).json({
-        error: 'Faltan datos requeridos: registro, fecha, usuario, factura e inquilino'
+        error: 'Faltan datos requeridos: registro, fecha, usuario e inquilino'
       });
     }
 
     const sql = `
       UPDATE pago
-      SET registro = ?, fecha = ?, usuario = ?, factura = ?, inquilino = ?, nota = ?
+      SET registro = ?, fecha = ?, usuario = ?, inquilino = ?, nota = ?
       WHERE id = ?
     `;
-    const valores = [registro, fecha, usuario, factura, inquilino, nota || null, id];
+    const valores = [registro, fecha, usuario, inquilino, nota || null, id];
 
     const [result] = await conexion.query(sql, valores);
 

@@ -2,23 +2,27 @@ const express = require('express');
 const router = express.Router();
 
 const {
-    mostrarReservas,
-    mostrarReserva,
-    crearReserva,
-    editarReserva,
-    eliminarReserva
+  mostrarReservas,
+  mostrarReserva,
+  mostrarReservasLabel,   // ✅ nuevas funciones importadas
+  mostrarReservaLabel,    // ✅ nuevas funciones importadas
+  crearReserva,
+  editarReserva,
+  eliminarReserva
 } = require('../controllers/reserva');
 
 // Reservas
-router.get("/reservas", mostrarReservas);
-router.get("/reserva/:id", mostrarReserva);
-router.post("/reserva", crearReserva);
-router.put("/reserva/:id", editarReserva);
-router.delete("/reserva/:id", eliminarReserva);
+router.get('/', mostrarReservas);                 // GET /reserva → lista todas
+router.get('/:id', mostrarReserva);               // GET /reserva/:id → una reserva
+router.get('/labels', mostrarReservasLabel);      // GET /reserva/labels → todas con labels
+router.get('/:id/label', mostrarReservaLabel);    // GET /reserva/:id/label → una con labels
+router.post('/', crearReserva);                   // POST /reserva → crear
+router.put('/:id', editarReserva);                // PUT /reserva/:id → editar
+router.delete('/:id', eliminarReserva);           // DELETE /reserva/:id → eliminar
 
-// Ruta de prueba
-router.get('/reservas-prueba', (req, res) => {
-    res.json([]); // Devuelve un array vacío solo para probar
+// Ruta de prueba opcional
+router.get('/prueba', (req, res) => {
+  res.json([]); // Devuelve un array vacío solo para probar
 });
 
 module.exports = router;

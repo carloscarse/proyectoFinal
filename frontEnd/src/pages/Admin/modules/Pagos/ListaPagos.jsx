@@ -119,7 +119,6 @@ function ListaPagos() {
           <tr>
             <th>Fecha</th>
             <th>Usuario</th>
-            <th>Factura</th>
             <th>Inquilino</th>
             <th>Nota</th>
             <th className="col-acciones">Acciones</th>
@@ -130,7 +129,6 @@ function ListaPagos() {
             <tr key={p.id}>
               <td>{formatoFechaHora(p.fecha)}</td>
               <td>{p.usuario?.usuario}</td>
-              <td>#{p.factura?.numero}</td>
               <td>{p.inquilinoLabel}</td>
               <td>{p.nota}</td>
               <td>
@@ -163,7 +161,7 @@ function ListaPagos() {
           ))}
           {pagos.length === 0 && (
             <tr>
-              <td colSpan={6} className="text-center text-muted">
+              <td colSpan={5} className="text-center text-muted">
                 No hay pagos registrados
               </td>
             </tr>

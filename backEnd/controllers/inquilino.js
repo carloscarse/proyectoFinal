@@ -69,10 +69,50 @@ const eliminarInquilino = async (req, res) => {
   }
 };
 
+// Obtener un inquilino con su label completo
+const mostrarInquilinoLabel = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [rows] = await conexion.query(`
+      SELECT i.id,
+             CONCAT_WS(' ', p.nombre, p.segundoNombre, p.apellido, p.segundoApellido) AS label
+      FROM inquilino i
+      JOIN persona p ON i.persona = p.id
+      WHERE i.id = ?
+    `, [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Inquilino no encontrado' });
+    }
+
+    res.json(rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener inquilino label', detalle: error.message });
+  }
+};
+
+// Obtener todos los inquilinos con su label completo
+const mostrarInquilinosLabel = async (req, res) => {
+  try {
+    const [rows] = await conexion.query(`
+      SELECT i.id,
+             CONCAT_WS(' ', p.nombre, p.segundoNombre, p.apellido, p.segundoApellido) AS label
+      FROM inquilino i
+      JOIN persona p ON i.persona = p.id
+    `);
+
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener inquilinos label', detalle: error.message });
+  }
+};
+
 module.exports = {
   mostrarInquilinos,
   mostrarInquilino,
   crearInquilino,
   editarInquilino,
-  eliminarInquilino
+  eliminarInquilino,
+  mostrarInquilinoLabel,
+  mostrarInquilinosLabel
 };

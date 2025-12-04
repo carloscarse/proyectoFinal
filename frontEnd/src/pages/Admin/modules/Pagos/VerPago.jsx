@@ -31,10 +31,8 @@ function VerPago({ pago, onClose }) {
           <strong>Usuario:</strong> <span>{pago.usuario?.usuario}</span>
         </div>
         <div className="detalle-linea">
-          <strong>Factura:</strong> <span>#{pago.factura?.numero}</span>
-        </div>
-        <div className="detalle-linea">
-          <strong>Inquilino:</strong> <span>{pago.inquilino?.label || pago.inquilinoLabel}</span>
+          <strong>Inquilino:</strong>{' '}
+          <span>{pago.inquilino?.label || pago.inquilinoLabel}</span>
         </div>
 
         <h5 className="mt-4">💳 Ítems de Pago</h5>
