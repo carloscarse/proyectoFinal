@@ -1,5 +1,3 @@
-// Reemplaza el siguiente código completo en App.jsx
-
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Admin from "./pages/Admin/Admin";
@@ -19,6 +17,7 @@ import Servicios from "./pages/Admin/modules/Servicios/Servicios";
 import Alquileres from "./pages/Admin/modules/Alquileres/Alquileres";
 import Documentacion from "./pages/Admin/modules/Documentacion/Documentacion";
 import Archivo from "./pages/Admin/modules/Archivo/Archivo";
+import ListaPersona from "./pages/Admin/modules/Persona/ListaPersona"; // 👈 nuevo import
 
 function App() {
   return (
@@ -38,6 +37,7 @@ function App() {
         <Route path="alquileres" element={<Alquileres />} />
         <Route path="documentacion" element={<Documentacion />} />
         <Route path="archivo" element={<Archivo />} />
+        <Route path="personas" element={<ListaPersona />} /> {/* 👈 nueva ruta */}
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

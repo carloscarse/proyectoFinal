@@ -13,8 +13,8 @@ const verifyToken = (req, res, next) => {
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, patron); //Verifica que el token sea válido y no esté vencido.
-    req.usuario = decoded; // Datos del usuario disponibles en la ruta, los adjunta al request
+    const decoded = jwt.verify(token, patron); // Verifica que el token sea válido y no esté vencido.
+    req.user = decoded; // 👈 usar req.user en lugar de req.usuario
     next();  // Permite que la ruta continúe si el token es válido
   } catch (error) {
     return res.status(403).json({ error: 'Token inválido o expirado' });

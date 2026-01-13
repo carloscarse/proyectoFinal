@@ -1,109 +1,56 @@
-const { conexion } = require('../config/dataBase.js');
+const AlquilerService = require('../services/alquiler');
+const PermisoService = require('../services/permiso');
 
-// Obtener todos los alquileres
-const mostrarAlquileres = async (req, res) => {
-  try {
-    const [results] = await conexion.query('SELECT * FROM alquiler');
-    res.json(results);
-  } catch (error) {
-    console.error('❌ Error al obtener los alquileres:', error);
-    res.status(500).json({ error: 'Error al obtener los alquileres', detalle: error.message });
-  }
-};
-
-// Obtener un alquiler por ID
-const mostrarAlquiler = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const [results] = await conexion.query('SELECT * FROM alquiler WHERE id = ?', [id]);
-    if (results.length === 0) {
-      return res.status(404).json({ error: 'Alquiler no encontrado' });
+const AlquilerController = {
+  async getAll(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'alquiler', 'ver');
+      const data = await AlquilerService.getAll();
+      res.json(data);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
     }
-    res.json(results[0]);
-  } catch (error) {
-    console.error('❌ Error al obtener el alquiler:', error);
-    res.status(500).json({ error: 'Error al obtener el alquiler', detalle: error.message });
-  }
-};
+  },
 
-// Crear un nuevo alquiler
-const crearAlquiler = async (req, res) => {
-  const { contrato, espacio, inicio, fin, estado, nota } = req.body;
-
-  if (!contrato || !espacio || !inicio || !fin || !estado) {
-    return res.status(400).json({
-      error: 'Faltan datos requeridos: contrato, espacio, inicio, fin y estado'
-    });
-  }
-
-  try {
-    const sql = `
-      INSERT INTO alquiler 
-      (contrato, espacio, inicio, fin, estado, nota) 
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    const valores = [contrato, espacio, inicio, fin, estado, nota || null];
-
-    const [result] = await conexion.query(sql, valores);
-
-    res.json({ success: true, message: '✅ Alquiler creado correctamente', id: result.insertId });
-  } catch (error) {
-    console.error('❌ Error al crear el alquiler:', error);
-    res.status(500).json({ error: 'Error al crear el alquiler', detalle: error.message });
-  }
-};
-
-// Editar un alquiler existente
-const editarAlquiler = async (req, res) => {
-  const { id } = req.params;
-  const { contrato, espacio, inicio, fin, estado, nota } = req.body;
-
-  if (!contrato || !espacio || !inicio || !fin || !estado) {
-    return res.status(400).json({
-      error: 'Faltan datos requeridos: contrato, espacio, inicio, fin y estado'
-    });
-  }
-
-  try {
-    const sql = `
-      UPDATE alquiler 
-      SET contrato = ?, espacio = ?, inicio = ?, fin = ?, estado = ?, nota = ?
-      WHERE id = ?
-    `;
-    const valores = [contrato, espacio, inicio, fin, estado, nota || null, id];
-
-    const [result] = await conexion.query(sql, valores);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Alquiler no encontrado' });
+  async getById(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'alquiler', 'ver');
+      const data = await AlquilerService.getById(req.params.id);
+      res.json(data);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
     }
+  },
 
-    res.json({ success: true, message: '✅ Alquiler actualizado correctamente', id });
-  } catch (error) {
-    console.error('❌ Error al editar el alquiler:', error);
-    res.status(500).json({ error: 'Error al editar el alquiler', detalle: error.message });
-  }
-};
-
-// Eliminar un alquiler
-const eliminarAlquiler = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const [result] = await conexion.query('DELETE FROM alquiler WHERE id = ?', [id]);
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Alquiler no encontrado' });
+  async create(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'alquiler', 'editar');
+      const nuevo = await AlquilerService.create(req.body);
+      res.status(201).json(nuevo);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
     }
-    res.status(204).send();
-  } catch (error) {
-    console.error('❌ Error al eliminar el alquiler:', error);
-    res.status(500).json({ error: 'Error al eliminar el alquiler', detalle: error.message });
+  },
+
+  async update(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'alquiler', 'editar');
+      const actualizado = await AlquilerService.update(req.params.id, req.body);
+      res.json(actualizado);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  },
+
+  async delete(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'alquiler', 'eliminar');
+      const resultado = await AlquilerService.delete(req.params.id);
+      res.json(resultado);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
   }
 };
 
-module.exports = {
-  mostrarAlquileres,
-  mostrarAlquiler,
-  crearAlquiler,
-  editarAlquiler,
-  eliminarAlquiler
-};
+module.exports = AlquilerController;

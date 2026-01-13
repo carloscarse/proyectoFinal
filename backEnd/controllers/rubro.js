@@ -1,94 +1,56 @@
-const { conexion } = require('../config/dataBase.js');
+const RubroService = require('../services/rubro');
+const PermisoService = require('../services/permiso');
 
-// Obtener todos los rubros
-const mostrarRubros = async (req, res) => {
-  try {
-    const [results] = await conexion.query('SELECT * FROM rubro');
-    res.json(results);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener los rubros', detalle: error.message });
-  }
-};
-
-// Obtener un rubro por ID
-const mostrarRubro = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const [results] = await conexion.query('SELECT * FROM rubro WHERE id = ?', [id]);
-    if (results.length === 0) {
-      return res.status(404).json({ error: 'Rubro no encontrado' });
+const RubroController = {
+  async getAll(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'rubro', 'ver');
+      const data = await RubroService.getAll();
+      res.json(data);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
     }
-    res.json(results[0]);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener el rubro', detalle: error.message });
-  }
-};
+  },
 
-// Crear un nuevo rubro
-const crearRubro = async (req, res) => {
-  const { rubro, descripcion } = req.body;
-
-  if (!rubro || !descripcion) {
-    return res.status(400).json({ error: 'Faltan datos requeridos: rubro y descripción' });
-  }
-
-  try {
-    const [results] = await conexion.query(
-      'INSERT INTO rubro (rubro, descripcion) VALUES (?, ?)',
-      [rubro, descripcion]
-    );
-    res.json({
-      message: 'Rubro creado correctamente',
-      id: results.insertId,
-      rubro,
-      descripcion
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al crear el rubro', detalle: error.message });
-  }
-};
-
-// Editar un rubro existente
-const editarRubro = async (req, res) => {
-  const { id } = req.params;
-  const { rubro, descripcion } = req.body;
-
-  if (!rubro || !descripcion) {
-    return res.status(400).json({ error: 'Faltan datos requeridos: rubro y descripción' });
-  }
-
-  try {
-    const [results] = await conexion.query(
-      'UPDATE rubro SET rubro = ?, descripcion = ? WHERE id = ?',
-      [rubro, descripcion, id]
-    );
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ error: 'Rubro no encontrado' });
+  async getById(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'rubro', 'ver');
+      const data = await RubroService.getById(req.params.id);
+      res.json(data);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
     }
-    res.json({ id, rubro, descripcion });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al editar el rubro', detalle: error.message });
-  }
-};
+  },
 
-// Eliminar un rubro
-const eliminarRubro = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const [results] = await conexion.query('DELETE FROM rubro WHERE id = ?', [id]);
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ error: 'Rubro no encontrado' });
+  async create(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'rubro', 'editar');
+      const nuevo = await RubroService.create(req.body);
+      res.status(201).json(nuevo);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
     }
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ error: 'Error al eliminar el rubro', detalle: error.message });
+  },
+
+  async update(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'rubro', 'editar');
+      const actualizado = await RubroService.update(req.params.id, req.body);
+      res.json(actualizado);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  },
+
+  async delete(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'rubro', 'eliminar');
+      const resultado = await RubroService.delete(req.params.id);
+      res.json(resultado);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
   }
 };
 
-module.exports = {
-  mostrarRubros,
-  mostrarRubro,
-  crearRubro,
-  editarRubro,
-  eliminarRubro
-};
+module.exports = RubroController;

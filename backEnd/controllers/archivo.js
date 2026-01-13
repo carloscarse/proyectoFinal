@@ -1,98 +1,56 @@
-const { conexion } = require('../config/dataBase.js');
+const ArchivoService = require('../services/archivo');
+const PermisoService = require('../services/permiso');
 
-// Obtener todos los archivos
-const mostrarArchivos = (req, res) => {
-    conexion.query('SELECT * FROM archivo', (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al obtener los archivos' });
-        }
-        res.json(results);
-    });
-};
-
-// Obtener un archivo por ID
-const mostrarArchivo = (req, res) => {
-    const { id } = req.params;
-
-    conexion.query('SELECT * FROM archivo WHERE id = ?', [id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al obtener el archivo' });
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'Archivo no encontrado' });
-        }
-        res.json(results[0]);
-    });
-};
-
-// Crear un nuevo archivo
-const crearArchivo = (req, res) => {
-    const { documentacion, archivo, url } = req.body;
-
-    if (!documentacion || !archivo || !url) {
-        return res.status(400).json({
-            error: 'Faltan datos requeridos: documentacion, nombre de archivo y URL'
-        });
+const ArchivoController = {
+  async getAll(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'archivo', 'ver');
+      const data = await ArchivoService.getAll();
+      res.json(data.map(a => ({ ...a, label: a.nombreArchivo })));
+    } catch (err) {
+      res.status(403).json({ error: err.message });
     }
+  },
 
-    const sql = 'INSERT INTO archivo (documentacion, archivo, url) VALUES (?, ?, ?)';
-    const valores = [documentacion, archivo, url];
-
-    conexion.query(sql, valores, (error, results) => {
-        if (error) {
-            return res.status(500).json({
-                error: 'Error al crear el archivo',
-                detalle: error.message
-            });
-        }
-        res.json({ message: 'Archivo creado correctamente' });
-    });
-};
-
-// Editar un archivo existente
-const editarArchivo = (req, res) => {
-    const { id } = req.params;
-    const { documentacion, archivo, url } = req.body;
-
-    if (!documentacion || !archivo || !url) {
-        return res.status(400).json({
-            error: 'Faltan datos requeridos: documentacion, nombre de archivo y URL'
-        });
+  async getById(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'archivo', 'ver');
+      const a = await ArchivoService.getById(req.params.id);
+      res.json({ ...a, label: a.nombreArchivo });
+    } catch (err) {
+      res.status(403).json({ error: err.message });
     }
+  },
 
-    const sql = 'UPDATE archivo SET documentacion = ?, archivo = ?, url = ? WHERE id = ?';
-    const valores = [documentacion, archivo, url, id];
+  async create(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'archivo', 'editar');
+      const nuevo = await ArchivoService.create(req.body);
+      res.status(201).json({ ...nuevo, label: nuevo.nombreArchivo });
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  },
 
-    conexion.query(sql, valores, (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al editar el archivo' });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ error: 'Archivo no encontrado' });
-        }
-        res.json({ id, documentacion, archivo, url });
-    });
+  async update(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'archivo', 'editar');
+      const actualizado = await ArchivoService.update(req.params.id, req.body);
+      res.json({ ...actualizado, label: actualizado.nombreArchivo });
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  },
+
+  async delete(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'archivo', 'eliminar');
+      const resultado = await ArchivoService.delete(req.params.id);
+      res.json(resultado);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  }
 };
 
-// Eliminar un archivo
-const eliminarArchivo = (req, res) => {
-    const { id } = req.params;
-
-    conexion.query('DELETE FROM archivo WHERE id = ?', [id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al eliminar el archivo' });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ error: 'Archivo no encontrado' });
-        }
-        res.status(204).send();
-    });
-};
-
-module.exports = {
-    mostrarArchivos,
-    mostrarArchivo,
-    crearArchivo,
-    editarArchivo,
-    eliminarArchivo
-};
+module.exports = ArchivoController;

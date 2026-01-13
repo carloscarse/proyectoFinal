@@ -1,0 +1,24 @@
+/* Base para cualquier modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal principal (Factura) */
+.modal-overlay-level-1 {
+  z-index: 1000;
+}
+
+/* Modal secundario (Pago) */
+.modal-overlay-level-2 {
+  z-index: 1100;
+}
+
+/* Modales dentro de pago (usuario, inquilino, itemPago) */
+.modal-overlay-level-3 {
+  z-index: 1200;
+}

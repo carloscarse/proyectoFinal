@@ -1,138 +1,190 @@
-import { useState, useEffect } from "react";
-import { api } from "../../../../endpoints/endpoints";
-import FormularioInquilino from "../Inquilinos/FormularioInquilino";
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { api } from '../../../../endpoints/endpoints';
+import FormularioPago from '../Pagos/FormularioPago';
+import './FormularioFactura.css';
 
-function FormularioFactura({ onClose, onCreacion }) {
-  const [numero, setNumero] = useState("");
-  const [fecha, setFecha] = useState("");
-  const [estado, setEstado] = useState("emitida");
-  const [inquilino, setInquilino] = useState("");
-  const [nota, setNota] = useState("");
-  const [inquilinos, setInquilinos] = useState([]);
-  const [mostrarModalInquilino, setMostrarModalInquilino] = useState(false);
+function FormularioFactura({ onClose, mode = 'create', initialFactura = null, onSaved }) {
+  const isEdit = mode === 'edit';
 
-  const cargarInquilinos = async () => {
+  const [formData, setFormData] = useState({
+    fecha: '',
+    numero: '',
+    estado: 'emitida',
+    pago: '',
+    nota: ''
+  });
+
+  const [pagos, setPagos] = useState([]);
+  const [mensaje, setMensaje] = useState('');
+  const [error, setError] = useState('');
+  const [showNuevoPago, setShowNuevoPago] = useState(false);
+
+  useEffect(() => {
+    if (isEdit && initialFactura) {
+      setFormData({
+        fecha: initialFactura.fecha?.replace(' ', 'T').slice(0, 16) || '',
+        numero: initialFactura.numero ?? '',
+        estado: initialFactura.estado ?? 'emitida',
+        pago: String(initialFactura.pago?.id ?? ''),
+        nota: initialFactura.nota ?? ''
+      });
+    }
+  }, [isEdit, initialFactura]);
+
+  const fetchPagos = async () => {
     try {
-      const res = await api.get("/inquilino");
-      const data = Array.isArray(res.data) ? res.data : [];
-      setInquilinos(data);
+      const res = await api.get('/pago/pagos');
+      const lista = Array.isArray(res.data) ? res.data : [];
+      const pagosConLabel = lista.map((p) => ({
+        id: String(p.id),
+        label: `Pago #${p.id} - ${p.fecha} (${p.nota || 'sin nota'})`
+      }));
+      setPagos(pagosConLabel);
     } catch (err) {
-      console.error("❌ Error al obtener inquilinos:", err);
+      console.error('❌ Error al obtener pagos:', err?.message || err);
+      setPagos([]);
     }
   };
 
   useEffect(() => {
-    cargarInquilinos();
+    fetchPagos();
   }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'pago' && value === 'nuevo') {
+      setShowNuevoPago(true);
+      return;
+    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const datos = {
-      numero,
-      fecha,
-      estado,
-      inquilino,
-      nota,
-    };
-
     try {
-      const res = await api.post("/factura", datos);
-      if (onCreacion) onCreacion(res.data);
-      window.dispatchEvent(new CustomEvent("facturas:refresh"));
-      if (onClose) onClose();
+      const payload = {
+        fecha: formData.fecha,
+        numero: Number(formData.numero),
+        estado: formData.estado,
+        pago_id: Number(formData.pago),
+        nota: formData.nota || null,
+        registro: new Date().toISOString().slice(0, 19).replace('T', ' ')
+      };
+
+      if (isEdit && initialFactura?.id) {
+        await api.put(`/factura/${initialFactura.id}`, payload);
+        setMensaje('✅ Factura actualizada correctamente');
+        setTimeout(() => onClose(initialFactura.id), 800);
+      } else {
+        const res = await api.post('/factura', payload);
+        const nuevoId = res.data?.id ?? res.data?.insertId;
+        setMensaje('✅ Factura registrada correctamente');
+        setTimeout(() => onClose(nuevoId), 800);
+      }
+
+      setError('');
+      window.dispatchEvent(new CustomEvent('factura:refresh'));
+      if (onSaved) onSaved();
+
+      setTimeout(() => {
+        setMensaje('');
+        onClose();
+      }, 1200);
     } catch (err) {
-      console.error("❌ Error al registrar factura:", err);
+      console.error('❌ Error al guardar factura:', err?.response?.data || err.message);
+      setError('❌ Error al guardar factura');
+      setMensaje('');
     }
   };
 
-  const handleNuevoInquilino = () => {
-    setMostrarModalInquilino(true);
-  };
+  // 🔑 Aquí empieza el return con portal y overlay
+  return createPortal(
+    <div className="modal-overlay modal-overlay-level-1">
+      <div className="usuarios-form">
+        <h4 className="mb-3">{isEdit ? 'Editar Factura' : 'Registrar Factura'}</h4>
 
-  const handleCerrarModalInquilino = (nuevo) => {
-    setMostrarModalInquilino(false);
-    if (nuevo) {
-      cargarInquilinos();
-      setInquilino(nuevo.id);
-    }
-  };
-
-  return (
-    <>
-      <form className="facturacion-form" onSubmit={handleSubmit}>
-        <label>
-          Número:
-          <input
-            type="text"
-            value={numero}
-            onChange={(e) => setNumero(e.target.value)}
-            required
-          />
-        </label>
-
-        <label>
-          Fecha:
+        <form onSubmit={handleSubmit}>
+          <label>Fecha</label>
           <input
             type="datetime-local"
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
+            name="fecha"
+            value={formData.fecha}
+            onChange={handleChange}
             required
           />
-        </label>
 
-        <label>
-          Estado:
-          <select value={estado} onChange={(e) => setEstado(e.target.value)}>
-            <option value="emitida">Emitida</option>
-            <option value="pagada">Pagada</option>
-            <option value="anulada">Anulada</option>
-          </select>
-        </label>
+          <label>Número</label>
+          <input
+            type="number"
+            name="numero"
+            value={formData.numero}
+            onChange={handleChange}
+            required
+          />
 
-        <label>
-          Inquilino:
+          <label>Estado</label>
           <select
-            value={inquilino}
-            onChange={(e) => {
-              if (e.target.value === "nuevo") {
-                handleNuevoInquilino();
-              } else {
-                setInquilino(e.target.value);
-              }
-            }}
+            name="estado"
+            value={formData.estado}
+            onChange={handleChange}
             required
           >
-            <option value="nuevo">➕ Nuevo</option>
-            {inquilinos.map((inq) => {
-              const p = inq.persona;
-              const label = [p.nombre, p.segundoNombre, p.apellido, p.segundoApellido]
-                .filter((v) => v && v !== "null")
-                .join(" ");
-              return (
-                <option key={inq.id} value={inq.id}>
-                  {label}
-                </option>
-              );
-            })}
+            <option value="emitida">Emitida</option>
+            <option value="pagada">Pagada</option>
           </select>
-        </label>
+                    <label>Pago</label>
+          <select
+            name="pago"
+            value={formData.pago}
+            onChange={handleChange}
+            required
+          >
+            <option value="">-- Seleccione --</option>
+            <option value="nuevo">➕ Nuevo</option>
+            {pagos.map(p => (
+              <option key={p.id} value={p.id}>{p.label}</option>
+            ))}
+          </select>
 
-        <label>
-          Nota:
+          <label>Nota</label>
           <textarea
-            value={nota}
-            onChange={(e) => setNota(e.target.value)}
-          ></textarea>
-        </label>
+            name="nota"
+            value={formData.nota}
+            onChange={handleChange}
+          />
 
-        <button type="submit">GUARDAR</button>
-      </form>
+          {mensaje && <p className="text-success mt-2">{mensaje}</p>}
+          {error && <p className="text-danger mt-2">{error}</p>}
 
-      {mostrarModalInquilino && (
-        <FormularioInquilino onClose={handleCerrarModalInquilino} />
-      )}
-    </>
+          <div className="d-flex justify-content-end gap-2 mt-3">
+            <button type="submit" className="btn btn-success btn-sm">
+              {isEdit ? 'Guardar cambios' : 'Registrar'}
+            </button>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>
+              Cancelar
+            </button>
+          </div>
+        </form>
+
+        {/* Modal hijo: Pago */}
+        {showNuevoPago && createPortal(
+          <div className="modal-overlay modal-overlay-level-2">
+            <FormularioPago
+              onClose={async (nuevoId) => {
+                setShowNuevoPago(false);
+                if (nuevoId) {
+                  await fetchPagos();
+                  setFormData(prev => ({ ...prev, pago: String(nuevoId) }));
+                }
+              }}
+            />
+          </div>,
+          document.getElementById('modals-root')
+        )}
+      </div>
+    </div>,
+    document.getElementById('modals-root')
   );
 }
 

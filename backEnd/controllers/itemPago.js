@@ -1,128 +1,56 @@
-const { conexion } = require('../config/dataBase.js');
+const ItemPagoService = require('../services/itemPago');
+const PermisoService = require('../services/permiso');
 
-// Obtener todos los items de pago
-const mostrarItemsPago = async (req, res) => {
-  try {
-    const [results] = await conexion.query('SELECT * FROM itempago');
-    res.json(results);
-  } catch (error) {
-    console.error('❌ Error SQL en mostrarItemsPago:', error.message);
-    res.status(500).json({ error: 'Error al obtener los items de pago', detalle: error.message });
+const ItemPagoController = {
+  async getAll(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'itemPago', 'ver');
+      const data = await ItemPagoService.getAll();
+      res.json(data.map(i => ({ ...i, label: i.item })));
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  },
+
+  async getById(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'itemPago', 'ver');
+      const i = await ItemPagoService.getById(req.params.id);
+      res.json({ ...i, label: i.item });
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  },
+
+  async create(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'itemPago', 'editar');
+      const nuevo = await ItemPagoService.create(req.body);
+      res.status(201).json({ ...nuevo, label: nuevo.item });
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  },
+
+  async update(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'itemPago', 'editar');
+      const actualizado = await ItemPagoService.update(req.params.id, req.body);
+      res.json({ ...actualizado, label: actualizado.item });
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  },
+
+  async delete(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'itemPago', 'eliminar');
+      const resultado = await ItemPagoService.delete(req.params.id);
+      res.json(resultado);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
   }
 };
 
-// Obtener un item de pago por ID
-const mostrarItemPago = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const [results] = await conexion.query('SELECT * FROM itempago WHERE id = ?', [id]);
-
-    if (results.length === 0) {
-      return res.status(404).json({ error: 'Item de pago no encontrado' });
-    }
-    res.json(results[0]);
-  } catch (error) {
-    console.error('❌ Error SQL en mostrarItemPago:', error.message);
-    res.status(500).json({ error: 'Error al obtener el item de pago', detalle: error.message });
-  }
-};
-
-// ✅ Obtener todos los ítems de un pago específico
-const mostrarItemsPorPago = async (req, res) => {
-  try {
-    const { id } = req.params; // id del pago
-    const [results] = await conexion.query('SELECT * FROM itempago WHERE pago = ?', [id]);
-
-    if (results.length === 0) {
-      return res.json([]); // devolvemos lista vacía si no hay ítems
-    }
-    res.json(results);
-  } catch (error) {
-    console.error('❌ Error SQL en mostrarItemsPorPago:', error.message);
-    res.status(500).json({ error: 'Error al obtener los ítems del pago', detalle: error.message });
-  }
-};
-
-// Crear un nuevo item de pago
-const crearItemPago = async (req, res) => {
-  try {
-    const { item, descripcion, cantidad, precio, monto, nota, pago } = req.body;
-
-    if (!item || !cantidad || !precio || !monto || !pago) {
-      return res.status(400).json({
-        error: 'Faltan datos requeridos: item, cantidad, precio, monto y pago'
-      });
-    }
-
-    const sql = `
-      INSERT INTO itempago (item, descripcion, cantidad, precio, monto, nota, pago)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `;
-    const valores = [item, descripcion || null, cantidad, precio, monto, nota || null, pago];
-
-    const [result] = await conexion.query(sql, valores);
-
-    res.json({ success: true, message: '✅ Item de pago registrado correctamente', id: result.insertId });
-  } catch (error) {
-    console.error('❌ Error SQL en crearItemPago:', error.message);
-    res.status(500).json({ error: 'Error al crear el item de pago', detalle: error.message });
-  }
-};
-
-// Editar un item de pago existente
-const editarItemPago = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { item, descripcion, cantidad, precio, monto, nota, pago } = req.body;
-
-    if (!item || !cantidad || !precio || !monto || !pago) {
-      return res.status(400).json({
-        error: 'Faltan datos requeridos: item, cantidad, precio, monto y pago'
-      });
-    }
-
-    const sql = `
-      UPDATE itempago
-      SET item = ?, descripcion = ?, cantidad = ?, precio = ?, monto = ?, nota = ?, pago = ?
-      WHERE id = ?
-    `;
-    const valores = [item, descripcion || null, cantidad, precio, monto, nota || null, pago, id];
-
-    const [result] = await conexion.query(sql, valores);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Item de pago no encontrado' });
-    }
-
-    res.json({ success: true, message: '✅ Item de pago actualizado correctamente', id: Number(id) });
-  } catch (error) {
-    console.error('❌ Error SQL en editarItemPago:', error.message);
-    res.status(500).json({ error: 'Error al editar el item de pago', detalle: error.message });
-  }
-};
-
-// Eliminar un item de pago
-const eliminarItemPago = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const [result] = await conexion.query('DELETE FROM itempago WHERE id = ?', [id]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Item de pago no encontrado' });
-    }
-
-    res.json({ success: true, message: '✅ Item de pago eliminado correctamente' });
-  } catch (error) {
-    console.error('❌ Error SQL en eliminarItemPago:', error.message);
-    res.status(500).json({ error: 'Error al eliminar el item de pago', detalle: error.message });
-  }
-};
-
-module.exports = {
-  mostrarItemsPago,
-  mostrarItemPago,
-  mostrarItemsPorPago, // 👈 nuevo export
-  crearItemPago,
-  editarItemPago,
-  eliminarItemPago
-};
+module.exports = ItemPagoController;

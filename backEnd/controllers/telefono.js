@@ -1,108 +1,66 @@
-const { conexion } = require('../config/dataBase.js');
+// proyecto/backend/src/controllers/telefono.js
+const TelefonoService = require('../services/telefono');
+const PermisoService = require('../services/permiso');
 
-// Obtener todos los teléfonos
-const mostrarTelefonos = (req, res) => {
-    conexion.query('SELECT * FROM telefono', (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al obtener los teléfonos' });
-        }
-        res.json(results);
-    });
-};
-
-// Obtener un teléfono por ID
-const mostrarTelefono = (req, res) => {
-    const { id } = req.params;
-
-    conexion.query('SELECT * FROM telefono WHERE id = ?', [id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al obtener el teléfono' });
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'Teléfono no encontrado' });
-        }
-        res.json(results[0]);
-    });
-};
-
-// Crear un nuevo teléfono
-const crearTelefono = (req, res) => {
-    const { persona, pais, cArea, numero } = req.body;
-
-    if (!persona || !pais || !cArea || !numero) {
-        return res.status(400).json({
-            error: 'Faltan datos requeridos: persona, país, código de área y número'
-        });
+const TelefonoController = {
+  async getAllByPersona(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'telefono', 'ver');
+      const data = await TelefonoService.getAllByPersona(req.params.personaId);
+      res.json(data);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
     }
+  },
 
-    const sql = `
-        INSERT INTO telefono 
-        (persona, pais, cArea, numero) 
-        VALUES (?, ?, ?, ?)
-    `;
-
-    const valores = [persona, pais, cArea, numero];
-
-    conexion.query(sql, valores, (error, results) => {
-        if (error) {
-            return res.status(500).json({
-                error: 'Error al crear el teléfono',
-                detalle: error.message
-            });
-        }
-        res.json({ message: 'Teléfono creado correctamente' });
-    });
-};
-
-// Editar un teléfono existente
-const editarTelefono = (req, res) => {
-    const { id } = req.params;
-    const { persona, pais, cArea, numero } = req.body;
-
-    if (!persona || !pais || !cArea || !numero) {
-        return res.status(400).json({
-            error: 'Faltan datos requeridos: persona, país, código de área y número'
-        });
+  async getById(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'telefono', 'ver');
+      const data = await TelefonoService.getById(req.params.id);
+      if (!data) {
+        return res.status(404).json({ error: 'Teléfono no encontrado' });
+      }
+      res.json(data);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
     }
+  },
 
-    const sql = `
-        UPDATE telefono 
-        SET persona = ?, pais = ?, cArea = ?, numero = ?
-        WHERE id = ?
-    `;
+  async create(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'telefono', 'editar');
+      const nuevo = await TelefonoService.create(req.params.personaId, req.body);
+      res.status(201).json(nuevo);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  },
 
-    const valores = [persona, pais, cArea, numero, id];
+  async update(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'telefono', 'editar');
+      const actualizado = await TelefonoService.update(req.params.id, req.body);
+      res.json(actualizado);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  },
 
-    conexion.query(sql, valores, (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al editar el teléfono' });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ error: 'Teléfono no encontrado' });
-        }
-        res.json({ id, persona, pais, cArea, numero });
-    });
+  async delete(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'telefono', 'eliminar');
+      const resultado = await TelefonoService.delete(req.params.id);
+
+      if (!resultado) {
+        return res.status(404).json({ error: 'Teléfono no encontrado' });
+      }
+
+      res.json({ mensaje: 'Teléfono eliminado correctamente' });
+    } catch (err) {
+      console.error('❌ Error al eliminar teléfono:', err.message);
+      res.status(500).json({ error: 'Error interno al eliminar teléfono' });
+    }
+  }
 };
 
-// Eliminar un teléfono
-const eliminarTelefono = (req, res) => {
-    const { id } = req.params;
-
-    conexion.query('DELETE FROM telefono WHERE id = ?', [id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al eliminar el teléfono' });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ error: 'Teléfono no encontrado' });
-        }
-        res.status(204).send();
-    });
-};
-
-module.exports = {
-    mostrarTelefonos,
-    mostrarTelefono,
-    crearTelefono,
-    editarTelefono,
-    eliminarTelefono
-};
+module.exports = TelefonoController;

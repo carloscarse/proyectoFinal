@@ -1,108 +1,56 @@
-const { conexion } = require('../config/dataBase.js');
+const ServicioService = require('../services/servicio');
+const PermisoService = require('../services/permiso');
 
-// Obtener todos los servicios
-const mostrarServicios = (req, res) => {
-    conexion.query('SELECT * FROM servicio', (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al obtener los servicios' });
-        }
-        res.json(results);
-    });
-};
-
-// Obtener un servicio por ID
-const mostrarServicio = (req, res) => {
-    const { id } = req.params;
-
-    conexion.query('SELECT * FROM servicio WHERE id = ?', [id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al obtener el servicio' });
-        }
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'Servicio no encontrado' });
-        }
-        res.json(results[0]);
-    });
-};
-
-// Crear un nuevo servicio
-const crearServicio = (req, res) => {
-    const { servicio, cantidad, precio, factura, nota } = req.body;
-
-    if (!servicio || !cantidad || !precio || !factura) {
-        return res.status(400).json({
-            error: 'Faltan datos requeridos: servicio, cantidad, precio y factura'
-        });
+const ServicioController = {
+  async getAll(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'servicio', 'ver');
+      const data = await ServicioService.getAll();
+      res.json(data);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
     }
+  },
 
-    const sql = `
-        INSERT INTO servicio 
-        (servicio, cantidad, precio, factura, nota) 
-        VALUES (?, ?, ?, ?, ?)
-    `;
-
-    const valores = [servicio, cantidad, precio, factura, nota || null];
-
-    conexion.query(sql, valores, (error, results) => {
-        if (error) {
-            return res.status(500).json({
-                error: 'Error al crear el servicio',
-                detalle: error.message
-            });
-        }
-        res.json({ message: 'Servicio creado correctamente' });
-    });
-};
-
-// Editar un servicio existente
-const editarServicio = (req, res) => {
-    const { id } = req.params;
-    const { servicio, cantidad, precio, factura, nota } = req.body;
-
-    if (!servicio || !cantidad || !precio || !factura) {
-        return res.status(400).json({
-            error: 'Faltan datos requeridos: servicio, cantidad, precio y factura'
-        });
+  async getById(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'servicio', 'ver');
+      const data = await ServicioService.getById(req.params.id);
+      res.json(data);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
     }
+  },
 
-    const sql = `
-        UPDATE servicio 
-        SET servicio = ?, cantidad = ?, precio = ?, factura = ?, nota = ?
-        WHERE id = ?
-    `;
+  async create(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'servicio', 'editar');
+      const nuevo = await ServicioService.create(req.body);
+      res.status(201).json(nuevo);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  },
 
-    const valores = [servicio, cantidad, precio, factura, nota || null, id];
+  async update(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'servicio', 'editar');
+      const actualizado = await ServicioService.update(req.params.id, req.body);
+      res.json(actualizado);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  },
 
-    conexion.query(sql, valores, (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al editar el servicio' });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ error: 'Servicio no encontrado' });
-        }
-        res.json({ id, servicio, cantidad, precio, factura });
-    });
+  async delete(req, res) {
+    try {
+      await PermisoService.validarAcceso(req.user.rol, 'servicio', 'eliminar');
+      const resultado = await ServicioService.delete(req.params.id);
+      res.json(resultado);
+    } catch (err) {
+      res.status(403).json({ error: err.message });
+    }
+  }
 };
 
-// Eliminar un servicio
-const eliminarServicio = (req, res) => {
-    const { id } = req.params;
-
-    conexion.query('DELETE FROM servicio WHERE id = ?', [id], (error, results) => {
-        if (error) {
-            return res.status(500).json({ error: 'Error al eliminar el servicio' });
-        }
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ error: 'Servicio no encontrado' });
-        }
-        res.status(204).send();
-    });
-};
-
-module.exports = {
-    mostrarServicios,
-    mostrarServicio,
-    crearServicio,
-    editarServicio,
-    eliminarServicio
-};
+module.exports = ServicioController;

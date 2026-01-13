@@ -20,7 +20,8 @@ const Login = ({ onClose }) => {
     }
 
     try {
-      const res = await axios.post('http://localhost:8000/auth/login', {
+      // ✅ URL correcta con prefijo /api
+      const res = await axios.post('http://localhost:8000/api/auth/login', {
         usuario,
         clave
       });
@@ -29,15 +30,31 @@ const Login = ({ onClose }) => {
       console.log('✅ Respuesta del backend:', data);
 
       if (data.token) {
+        // Guardar en Zustand con todos los campos, incluido el label
         setUserStore({
-          id: data.id,
-          nombre: data.usuario,
-          rol: data.rol
+          usuario: data.usuario,
+          rol: data.rol,
+          nombreCompleto: data.nombreCompleto,
+          label: data.label,        // 👈 ahora guardamos el label
+          token: data.token
         });
 
+        // Guardar en localStorage
         localStorage.setItem('token', data.token);
+        localStorage.setItem('usuario', data.usuario);
+        localStorage.setItem('rol', data.rol);
+        localStorage.setItem('nombreCompleto', data.nombreCompleto);
+        localStorage.setItem('label', data.label); // 👈 también guardamos el label
 
-        navigate(data.rol === 1 ? '/admin' : '/');
+        // ✅ Condición ajustada: rol puede ser número o texto
+        if (data.rol === 1 || data.rol === 'Administrador' || data.rol === 'administrador') {
+          console.log('🔁 Redirigiendo a /admin');
+          navigate('/admin');
+        } else {
+          console.log('🔁 Redirigiendo a /');
+          navigate('/');
+        }
+
         if (onClose) onClose();
       } else {
         setError(data.error || 'Credenciales incorrectas');
@@ -78,9 +95,17 @@ const Login = ({ onClose }) => {
         </div>
         {error && <p className="text-danger mt-2">{error}</p>}
         <div className="form-group d-flex justify-content-between mt-3">
-          <button type="submit" className="btn btn-outline-light w-50 me-2">Ingresar</button>
+          <button type="submit" className="btn btn-outline-light w-50 me-2">
+            Ingresar
+          </button>
           {onClose && (
-            <button type="button" className="btn btn-secondary w-50" onClick={onClose}>Cancelar</button>
+            <button
+              type="button"
+              className="btn btn-secondary w-50"
+              onClick={onClose}
+            >
+              Cancelar
+            </button>
           )}
         </div>
       </form>
