@@ -1,20 +1,5 @@
-// frontEnd/src/utils/labels/persona.js
+// proyecto/frontEnd/src/utils/labels/persona.js
 
-/**
- * Devuelve un label amigable para una persona al estilo AppSheet.
- * Concatena: nombre, segundoNombre, apellido, segundoApellido
- * - Omite nulos, undefined, vacíos y valores con solo espacios.
- * - Normaliza espacios múltiples.
- * - Evita errores si algún campo no existe.
- *
- * Ejemplos:
- *  - { nombre: 'Damián', segundoNombre: 'Ignacio', apellido: 'Díaz' }
- *      => 'Damián Ignacio Díaz'
- *  - { nombre: 'Fabriccio', apellido: 'Navarro', segundoApellido: 'Gómez' }
- *      => 'Fabriccio Navarro Gómez'
- *  - { nombre: '   ', apellido: 'Serrano' }
- *      => 'Serrano'
- */
 export function getPersonaLabel(persona) {
   if (!persona || typeof persona !== 'object') return '';
 

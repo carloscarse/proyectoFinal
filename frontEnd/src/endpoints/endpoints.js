@@ -30,7 +30,7 @@ export const urlMostrarContrato = (id) => `/contrato/${id}`;       // GET
 export const urlActualizarContrato = (id) => `/contrato/${id}`;    // PUT
 export const urlEliminarContrato = (id) => `/contrato/${id}`;      // DELETE
 
-// Podés seguir agregando módulos así:
+// faltan:
 // ──────────────── RESERVAS ────────────────
 // ──────────────── PAGOS ────────────────
 // ──────────────── ESPACIOS ────────────────

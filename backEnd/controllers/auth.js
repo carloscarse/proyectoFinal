@@ -1,38 +1,47 @@
-const AuthService = require('../services/auth');
-const UsuarioRepository = require('../repositories/usuario');
-const RolRepository = require('../repositories/rol');
-const PersonaRepository = require('../repositories/persona');
+// proyecto/backEnd/controllers/auth.js
 
-const AuthController = {
+const AuthServicio = require('../services/auth');
+const UsuarioRepositorio = require('../repositories/usuario');
+const RolRepositorio = require('../repositories/rol');
+const PersonaRepositorio = require('../repositories/persona');
+const PermisoRepositorio = require('../repositories/permiso');
+
+const AuthControlador = {
   async login(req, res) {
     const { usuario, clave } = req.body;
     try {
-      const result = await AuthService.login(usuario, clave);
+      const result = await AuthServicio.login(usuario, clave, req.ip);
 
-      // Buscar datos completos del usuario
-      const user = await UsuarioRepository.getByUsuario(usuario);
-      const rolData = await RolRepository.getById(user.rol);
+      const user = await UsuarioRepositorio.obtenerUsuarioPorNombre(usuario);
+      const rolData = await RolRepositorio.obtenerRolPorId(user.rol);
       const rolNombre = rolData?.rol || 'Rol desconocido';
-      const persona = await PersonaRepository.getById(user.persona);
+      const persona = await PersonaRepositorio.obtenerPersonaPorId(user.persona);
       const nombreCompleto = persona
         ? `${persona.nombre} ${persona.apellido}`
         : 'Nombre desconocido';
 
       const label = `Usuario: ${rolNombre} ${nombreCompleto}`;
 
-      // 👇 devolvemos rolId (numérico) y rolNombre (texto)
+      const permisos = await PermisoRepositorio.permisosPorUsuario(user.usuario);
+
       res.json({
+        id: user.id,
         usuario: user.usuario,
-        rol: user.rol,          // 👈 ID numérico del rol
-        rolNombre,              // 👈 nombre del rol para mostrar
+        rol: user.rol,
+        rolNombre,
         nombreCompleto,
         label,
+        permisos,
         token: result.token
       });
     } catch (error) {
-      if (error.message === 'Usuario no encontrado' || error.message === 'Clave incorrecta') {
+      if (
+        error.message === 'Usuario no encontrado' ||
+        error.message === 'Clave incorrecta'
+      ) {
         return res.status(401).json({ error: error.message });
       }
+      console.error("❌ Error en login:", error.message);
       return res.status(500).json({ error: 'Error interno del servidor' });
     }
   },
@@ -41,31 +50,63 @@ const AuthController = {
     try {
       const { usuario } = req.params;
 
-      const user = await UsuarioRepository.getByUsuario(usuario);
+      const user = await UsuarioRepositorio.obtenerUsuarioPorNombre(usuario);
       if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-      const rolData = await RolRepository.getById(user.rol);
+      const rolData = await RolRepositorio.obtenerRolPorId(user.rol);
       const rolNombre = rolData?.rol || 'Rol desconocido';
 
-      const persona = await PersonaRepository.getById(user.persona);
+      const persona = await PersonaRepositorio.obtenerPersonaPorId(user.persona);
       const nombreCompleto = persona
         ? `${persona.nombre} ${persona.apellido}`
         : 'Nombre desconocido';
 
       const label = `Usuario: ${rolNombre} ${nombreCompleto}`;
 
+      const permisos = await PermisoRepositorio.permisosPorUsuario(user.usuario);
+
       res.json({
+        id: user.id,
         usuario: user.usuario,
-        rol: user.rol,          // 👈 ID numérico
-        rolNombre,              // 👈 nombre del rol
+        rol: user.rol,
+        rolNombre,
         nombreCompleto,
-        label
+        label,
+        permisos
       });
     } catch (error) {
-      console.error('❌ Error en getUserByName:', error);
+      console.error('❌ Error en getUserByName:', error.message);
       res.status(500).json({ error: 'Error interno del servidor' });
+    }
+  },
+
+  async logout(req, res) {
+    try {
+      const { usuario } = req.body;
+      await AuthServicio.logout(usuario, req.ip);
+      res.json({ ok: true });
+    } catch (error) {
+      console.error('❌ Error en logout:', error.message);
+      res.status(500).json({ error: 'Error al cerrar sesión' });
+    }
+  },
+
+  // 🚀 Nuevo endpoint: usuario autenticado con permisos
+  async me(req, res) {
+    try {
+      const usuario = req.user; // viene del verifyToken
+      const permisos = await PermisoRepositorio.permisosPorUsuario(usuario.usuario);
+
+      res.json({
+        id: usuario.id,
+        usuario: usuario.usuario,
+        rol: usuario.rol,
+        permisos
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
   }
 };
 
-module.exports = AuthController;
+module.exports = AuthControlador;

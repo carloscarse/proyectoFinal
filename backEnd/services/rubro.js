@@ -16,35 +16,34 @@ const RubroService = {
   async create(data) {
     console.log('📥 Datos recibidos en RubroService.create:', data);
 
-    // Validaciones básicas
-    if (!data.rubro) {
-      throw new Error('Campo obligatorio: rubro');
-    }
+    // No se aplican validaciones estrictas: todos los campos pueden ser null
+    const nuevoRubro = await RubroRepository.create(data);
+    console.log('✅ Rubro creado con ID:', nuevoRubro.id);
 
-    return await RubroRepository.create({
-      rubro: data.rubro,
-      descripcion: data.descripcion || null
-    });
+    return nuevoRubro;
   },
 
   async update(id, data) {
     if (!id) throw new Error('ID requerido');
-
     console.log('✏️ Datos recibidos en RubroService.update:', id, data);
 
-    if (!data.rubro) {
-      throw new Error('Campo obligatorio: rubro');
-    }
-
-    return await RubroRepository.update(id, {
-      rubro: data.rubro,
-      descripcion: data.descripcion || null
-    });
+    // Actualización directa, permitiendo null en cualquier campo
+    return await RubroRepository.update(id, { ...data });
   },
 
   async delete(id) {
     if (!id) throw new Error('ID requerido');
-    return await RubroRepository.delete(id);
+    try {
+      return await RubroRepository.delete(id);
+    } catch (err) {
+      console.error('❌ Error en RubroService.delete:', err.code, err.message);
+
+      if (err.code === 'ER_ROW_IS_REFERENCED_2') {
+        throw new Error('No se puede eliminar: el rubro está vinculado a otros registros (foreign key)');
+      }
+
+      throw err;
+    }
   }
 };
 

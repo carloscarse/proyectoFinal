@@ -1,34 +1,37 @@
-import { useUserStore } from '../../../Store/userStore';
+// proyecto/frontEnd/src/pages/Admin/Layout/Header.jsx
+import { useUserStore } from '../../../Stores/userStore';
 import { useNavigate } from 'react-router-dom';
+import './Header.css';
 
 function Header() {
-  const { user, logout } = useUserStore(); // ✅ usamos user en vez de label
+  const { user, logout } = useUserStore();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    // 👇 Llamada al backend en segundo plano
+    fetch("http://localhost:8000/api/auth/logout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      },
+      body: JSON.stringify({ usuario: user.usuario })
+    }).catch(err => {
+      console.error("❌ Error al registrar logout:", err);
+    });
+
+    // 👇 Cerrar sesión visualmente de inmediato
+    logout(); // limpia el store
+    localStorage.clear();
     navigate('/');
   };
 
   return (
-    <header className="admin-header d-flex justify-content-between align-items-center p-2 bg-dark text-light">
-      <span>{user?.label || 'Usuario: Rol Nombre'}</span> {/* ✅ ahora sí muestra el label */}
-      <button
-        onClick={handleLogout}
-        style={{
-          backgroundColor: '#3b5998', // azul marino claro
-          color: 'white',
-          border: 'none',
-          padding: '0.5rem 1rem',
-          borderRadius: '5px',
-          fontWeight: 'bold',
-          textTransform: 'capitalize', // solo primera letra en mayúscula
-          display: 'flex',
-          alignItems: 'center'
-        }}
-      >
+    <header className="admin-header">
+      <span>{user?.label || 'Usuario: Rol Nombre'}</span>
+      <button onClick={handleLogout} className="logout-button">
         <span className="me-2">Cerrar sesión</span>
-        <span role="img" aria-label="candado" style={{ fontSize: '1.2rem' }}>🔒</span>
+        <span role="img" aria-label="candado" className="logout-icon">🔒</span>
       </button>
     </header>
   );

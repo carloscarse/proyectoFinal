@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '../../../../endpoints/endpoints';
 import FormularioInquilino from '../Inquilinos/FormularioInquilino';
-import FormularioRubro from '../Rubros/FormularioRubro';
+import FormularioRubro from '../Rubros/AgregarRubro';
 import './FormularioEspacio.css';
 
 function FormularioEspacio({ onClose, mode = 'create', initialEspacio = null, onSaved }) {

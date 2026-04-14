@@ -1,3 +1,4 @@
+// proyecto/backEnd/app.js
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -5,12 +6,25 @@ const fs = require('fs');
 require('dotenv').config({ path: __dirname + '/.env' });
 
 const { conexion } = require('./config/dataBase');
-const verifyToken = require('./middleware/verifyToken'); // 👈 usar este
+const verifyToken = require('./middleware/verifyToken');
 
 const app = express();
 
 // Middlewares
-app.use(cors({ origin: process.env.CORS_ORIGIN }));
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  credentials: true
+}));
+
+// Permitir cabeceras y métodos personalizados
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", process.env.CORS_ORIGIN || "http://localhost:5173");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
+
 app.use(express.json());
 
 // Inyectar pool en cada request
@@ -23,7 +37,6 @@ app.use((req, res, next) => {
 const uploadsDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('📂 Carpeta uploads creada automáticamente');
 }
 app.use('/uploads', express.static(uploadsDir));
 
@@ -40,6 +53,7 @@ const rubro = require('./routes/rubro');
 const alquiler = require('./routes/alquiler');
 const contrato = require('./routes/contrato');
 const pago = require('./routes/pago');
+const logMovimiento = require('./routes/logMovimiento');
 const permiso = require('./routes/permiso');
 const itempago = require('./routes/itemPago');
 const factura = require('./routes/factura');
@@ -47,21 +61,22 @@ const reserva = require('./routes/reserva');
 const servicio = require('./routes/servicio');
 const telefono = require('./routes/telefono');
 
-
 // Montar rutas
-app.use('/api/auth', auth); // 👈 pública, no requiere token
+app.use('/api/auth', auth); // pública, no requiere token
 
-// 👇 protegidas con verifyToken
+// protegidas con verifyToken
+app.use('/api/auth', auth);
 app.use('/api/usuario', verifyToken, usuario);
 app.use('/api/persona', verifyToken, persona);
 app.use('/api/rol', verifyToken, rol);
 app.use('/api/inquilino', verifyToken, inquilino);
-app.use('/api/direccion', verifyToken, direccion)
+app.use('/api/direccion', verifyToken, direccion);
 app.use('/api/documentacion', verifyToken, documentacion);
 app.use('/api/espacio', verifyToken, espacio);
 app.use('/api/rubro', verifyToken, rubro);
 app.use('/api/alquiler', verifyToken, alquiler);
 app.use('/api/contrato', verifyToken, contrato);
+app.use('/api/logmovimiento', verifyToken, logMovimiento);
 app.use('/api/pago', verifyToken, pago);
 app.use('/api/permiso', verifyToken, permiso);
 app.use('/api/itempago', verifyToken, itempago);

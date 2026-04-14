@@ -1,3 +1,4 @@
+// proyecto/backend/src/routes/rubro.js
 const express = require('express');
 const router = express.Router();
 const RubroController = require('../controllers/rubro');

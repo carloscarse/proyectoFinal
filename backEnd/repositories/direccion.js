@@ -1,19 +1,33 @@
-// proyecto/backend/src/repositories/direccion.js
+// proyecto/backEnd/repositories/direccion.js
+
 const { conexion } = require('../config/dataBase');
 
-const DireccionRepository = {
-  // Obtener todas las direcciones de una persona
-  async getAllByPersona(personaId) {
-    const [rows] = await conexion.query(
-      'SELECT * FROM direccion WHERE persona = ?',
-      [personaId]
-    );
-    return rows;
+const DireccionRepositorio = {
+  async obtenerDireccion() {
+    const [rows] = await conexion.query('SELECT * FROM direccion');
+    return rows.map(d => ({
+      ...d,
+      label: [d.calle, d.numero, d.ciudad, d.provincia, d.pais]
+        .filter(v => v && v.toString().trim() !== '')
+        .join(', ')
+    }));
   },
 
-  // Crear una nueva dirección
-  async create(personaId, direccion) {
+  async obtenerDireccionPorId(id) {
+    const [rows] = await conexion.query('SELECT * FROM direccion WHERE id = ?', [id]);
+    if (!rows[0]) return null;
+    const d = rows[0];
+    return {
+      ...d,
+      label: [d.calle, d.numero, d.ciudad, d.provincia, d.pais]
+        .filter(v => v && v.toString().trim() !== '')
+        .join(', ')
+    };
+  },
+
+  async agregarDireccion(direccion) {
     const {
+      persona,
       calle,
       numero,
       manzana,
@@ -29,7 +43,11 @@ const DireccionRepository = {
       codigoPostal
     } = direccion;
 
-    console.log('🧾 Ejecutando INSERT en direccion:', direccion);
+    const normalize = (val) => (val === undefined || val === '' ? null : val);
+
+    if (!persona) {
+      throw new Error("El campo 'persona' es obligatorio en la tabla dirección");
+    }
 
     const query = `
       INSERT INTO direccion (
@@ -39,10 +57,8 @@ const DireccionRepository = {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    const normalize = (val) => (val === undefined || val === '' ? null : val);
-
     const values = [
-      personaId,
+      persona,
       normalize(calle),
       normalize(numero),
       normalize(manzana),
@@ -59,18 +75,72 @@ const DireccionRepository = {
     ];
 
     const [result] = await conexion.query(query, values);
-
-    console.log('✅ Dirección insertada con ID:', result.insertId);
-
-    return { id: result.insertId, persona: personaId, ...direccion };
+    return { id: result.insertId, ...direccion };
   },
 
-  // Eliminar una dirección
-  async delete(id) {
-    console.log('🗑️ Ejecutando DELETE en direccion con ID:', id);
+  async actualizarDireccion(id, direccion) {
+    const {
+      persona,
+      calle,
+      numero,
+      manzana,
+      lote,
+      edificio,
+      piso,
+      departamento,
+      barrio,
+      localidad,
+      ciudad,
+      provincia,
+      pais,
+      codigoPostal
+    } = direccion;
+
+    const normalize = (val) => (val === undefined || val === '' ? null : val);
+
+    const query = `
+      UPDATE direccion
+      SET persona=?, calle=?, numero=?, manzana=?, lote=?, edificio=?, piso=?, departamento=?,
+          barrio=?, localidad=?, ciudad=?, provincia=?, pais=?, codigoPostal=?
+      WHERE id=?
+    `;
+
+    const values = [
+      persona,
+      normalize(calle),
+      normalize(numero),
+      normalize(manzana),
+      normalize(lote),
+      normalize(edificio),
+      normalize(piso),
+      normalize(departamento),
+      normalize(barrio),
+      normalize(localidad),
+      normalize(ciudad),
+      normalize(provincia),
+      normalize(pais),
+      normalize(codigoPostal),
+      id
+    ];
+
+    await conexion.query(query, values);
+    return { id, ...direccion };
+  },
+
+  async eliminarDireccion(id) {
     await conexion.query('DELETE FROM direccion WHERE id=?', [id]);
     return { message: `Dirección con id ${id} eliminada` };
+  },
+
+  async obtenerDireccionesPorPersonaId(personaId) {
+    const [rows] = await conexion.query('SELECT * FROM direccion WHERE persona = ?', [personaId]);
+    return rows.map(d => ({
+      ...d,
+      label: [d.calle, d.numero, d.ciudad, d.provincia, d.pais]
+        .filter(v => v && v.toString().trim() !== '')
+        .join(', ')
+    }));
   }
 };
 
-module.exports = DireccionRepository;
+module.exports = DireccionRepositorio;

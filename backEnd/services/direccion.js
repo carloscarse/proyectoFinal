@@ -1,35 +1,84 @@
-// proyecto/backend/src/services/direccion.js
-const DireccionRepository = require('../repositories/direccion');
+// proyecto/backEnd/services/direccion.js
 
-const DireccionService = {
-  async getAllByPersona(personaId) {
-    if (!personaId) throw new Error('ID de persona requerido');
-    return await DireccionRepository.getAllByPersona(personaId);
-  },
+const DireccionRepositorio = require('../repositories/direccion');
 
-  async create(personaId, data) {
-    if (!personaId) throw new Error('ID de persona requerido');
-    console.log('📥 Datos recibidos en DireccionService.create:', personaId, data);
-
-    try {
-      const nuevaDireccion = await DireccionRepository.create(personaId, data);
-      console.log('✅ Dirección creada con ID:', nuevaDireccion.id);
-      return nuevaDireccion;
-    } catch (err) {
-      console.error('❌ Error en DireccionService.create:', err.message);
-      throw err;
+const DireccionServicio = {
+  async obtenerDireccion(user) {
+    if (!user.permisos.includes("direccion:ver")) {
+      throw new Error("No tiene permiso para ver direcciones");
     }
+    return await DireccionRepositorio.obtenerDireccion();
   },
 
-  async delete(id) {
+  async obtenerDireccionPorId(user, id) {
+    if (!user.permisos.includes("direccion:ver")) {
+      throw new Error("No tiene permiso para ver direcciones");
+    }
     if (!id) throw new Error('ID requerido');
-    try {
-      return await DireccionRepository.delete(id);
-    } catch (err) {
-      console.error('❌ Error en DireccionService.delete:', err.code, err.message);
-      throw err;
+
+    const direccion = await DireccionRepositorio.obtenerDireccionPorId(id);
+    if (!direccion) throw new Error('Dirección no encontrada');
+
+    return direccion;
+  },
+
+  async agregarDireccion(user, data) {
+    if (!user.permisos.includes("direccion:agregar")) {
+      throw new Error("No tiene permiso para agregar direcciones");
     }
+    if (!data.persona) {
+      throw new Error("El campo 'persona' es obligatorio para crear una dirección");
+    }
+
+    const direccionData = {
+      persona: data.persona,
+      calle: data.calle,
+      numero: data.numero,
+      manzana: data.manzana,
+      lote: data.lote,
+      edificio: data.edificio,
+      piso: data.piso,
+      departamento: data.departamento,
+      barrio: data.barrio,
+      localidad: data.localidad,
+      ciudad: data.ciudad,
+      provincia: data.provincia,
+      pais: data.pais,
+      codigoPostal: data.codigoPostal
+    };
+
+    return await DireccionRepositorio.agregarDireccion(direccionData);
+  },
+
+  async actualizarDireccion(user, id, data) {
+    if (!user.permisos.includes("direccion:editar")) {
+      throw new Error("No tiene permiso para editar direcciones");
+    }
+    if (!id) throw new Error('ID requerido');
+
+    const dirPrev = await DireccionRepositorio.obtenerDireccionPorId(id);
+    if (!dirPrev) throw new Error(`Dirección con id ${id} no encontrada`);
+
+    await DireccionRepositorio.actualizarDireccion(id, { ...data });
+  },
+
+  async eliminarDireccion(user, id) {
+    if (!user.permisos.includes("direccion:eliminar")) {
+      throw new Error("No tiene permiso para eliminar direcciones");
+    }
+    if (!id) throw new Error('ID requerido');
+
+    await DireccionRepositorio.eliminarDireccion(id);
+  },
+
+  async obtenerDireccionesPorPersonaId(user, personaId) {
+    if (!user.permisos.includes("direccion:ver")) {
+      throw new Error("No tiene permiso para ver direcciones");
+    }
+    if (!personaId) throw new Error("ID de persona requerido");
+
+    return await DireccionRepositorio.obtenerDireccionesPorPersonaId(personaId);
   }
 };
 
-module.exports = DireccionService;
+module.exports = DireccionServicio;

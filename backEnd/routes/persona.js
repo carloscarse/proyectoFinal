@@ -1,12 +1,12 @@
+// proyecto/backEnd/routes/persona.js
 const express = require('express');
 const router = express.Router();
-const PersonaController = require('../controllers/persona');
-const requierePermiso = require('../middleware/permiso');
+const PersonaControlador = require('../controllers/persona');
 
-router.get('/', requierePermiso('persona', 'ver'), PersonaController.getAll);
-router.get('/:id', requierePermiso('persona', 'ver'), PersonaController.getById);
-router.post('/', requierePermiso('persona', 'editar'), PersonaController.create);
-router.put('/:id', requierePermiso('persona', 'editar'), PersonaController.update);
-router.delete('/:id', requierePermiso('persona', 'eliminar'), PersonaController.delete);
+router.get('/', PersonaControlador.obtenerPersona);
+router.get('/:id', PersonaControlador.obtenerPersonaPorId);
+router.post('/', PersonaControlador.agregarPersona);
+router.put('/:id', PersonaControlador.actualizarPersona);
+router.delete('/:id', PersonaControlador.eliminarPersona);
 
 module.exports = router;

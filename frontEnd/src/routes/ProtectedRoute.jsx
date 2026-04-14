@@ -1,13 +1,16 @@
-import { useUserStore } from '../Store/userStore';
-import { Navigate } from 'react-router-dom';
+// frontEnd/src/routes/ProtectedRoute.jsx
+import { useUserStore } from "../Stores/userStore";
+import { Navigate } from "react-router-dom";
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useUserStore();
 
-  if (!user || user.rol !== 'admin') {
-    return <Navigate to="/" />;
+  // Si no hay usuario logueado, redirige al login
+  if (!user) {
+    return <Navigate to="/" replace />;
   }
 
+  // Para que todos entren y Sidebar muestre lo permitido:
   return children;
 };
 

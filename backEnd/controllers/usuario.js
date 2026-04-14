@@ -1,51 +1,52 @@
-const UsuarioService = require('../services/usuario');
-const PermisoService = require('../services/permiso');
+// proyecto/backEnd/controllers/usuario.js
+const UsuarioServicio = require('../services/usuario');
+const PermisoServicio = require('../services/permiso');
 
-const UsuarioController = {
-  async getAll(req, res) {
+const UsuarioControlador = {
+  async obtenerUsuario(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'usuario', 'ver');
-      const data = await UsuarioService.getAll();
+      await PermisoServicio.validarAcceso(req.user.rol, 'usuario', 'ver');
+      const data = await UsuarioServicio.obtenerUsuario();
       res.json(data);
     } catch (err) {
       res.status(403).json({ error: err.message });
     }
   },
 
-  async getById(req, res) {
+  async obtenerUsuarioPorId(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'usuario', 'ver');
-      const data = await UsuarioService.getById(req.params.id);
+      await PermisoServicio.validarAcceso(req.user.rol, 'usuario', 'ver');
+      const data = await UsuarioServicio.obtenerUsuarioPorId(req.params.id);
       res.json(data);
     } catch (err) {
       res.status(403).json({ error: err.message });
     }
   },
 
-  async create(req, res) {
+  async agregarUsuario(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'usuario', 'editar');
-      const nuevo = await UsuarioService.create(req.body);
+      await PermisoServicio.validarAcceso(req.user.rol, 'usuario', 'editar');
+      const nuevo = await UsuarioServicio.agregarUsuario(req.body);
       res.status(201).json(nuevo);
     } catch (err) {
       res.status(403).json({ error: err.message });
     }
   },
 
-  async update(req, res) {
+  async actualizarUsuario(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'usuario', 'editar');
-      const actualizado = await UsuarioService.update(req.params.id, req.body);
+      await PermisoServicio.validarAcceso(req.user.rol, 'usuario', 'editar');
+      const actualizado = await UsuarioServicio.actualizarUsuario(req.params.id, req.body);
       res.json(actualizado);
     } catch (err) {
       res.status(403).json({ error: err.message });
     }
   },
 
-  async delete(req, res) {
+  async eliminarUsuario(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'usuario', 'eliminar');
-      const resultado = await UsuarioService.delete(req.params.id);
+      await PermisoServicio.validarAcceso(req.user.rol, 'usuario', 'eliminar');
+      const resultado = await UsuarioServicio.eliminarUsuario(req.params.id);
       res.json(resultado);
     } catch (err) {
       res.status(403).json({ error: err.message });
@@ -53,4 +54,4 @@ const UsuarioController = {
   }
 };
 
-module.exports = UsuarioController;
+module.exports = UsuarioControlador;

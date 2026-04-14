@@ -1,0 +1,81 @@
+/* proyecto/frontEnd/src/pages/Admin/modules/Direccion/Ver.css */
+
+/* Overlay */
+.direccion-ver-objeto-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(20, 20, 20, 0.75);
+  backdrop-filter: blur(2px);
+  display: flex; 
+  justify-content: center; 
+  align-items: center;
+  z-index: 1100;
+}
+
+/* Contenedor principal */
+.direccion-ver-objeto-container {
+  background-color: rgba(33, 37, 41, 0.95);
+  padding: 24px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Título */
+.direccion-ver-objeto-title {
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #00bcd4;
+}
+
+/* Tarjeta con scroll interno */
+.direccion-ver-objeto-card {
+  background-color: #2c2c2c;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  flex: 1;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.direccion-ver-objeto-card p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #eee;
+}
+.direccion-ver-objeto-card strong {
+  color: #00bcd4;
+}
+
+/* Footer con botones */
+.direccion-ver-objeto-form-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.direccion-ver-objeto-btn-aceptar {
+  padding: 10px 20px;
+  min-width: 120px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  background-color: #6c757d;
+  color: white;
+  font-size: 14px;
+}
+
+.direccion-ver-objeto-btn-aceptar:hover {
+  background-color: #5a6268;
+}

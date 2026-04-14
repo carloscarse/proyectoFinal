@@ -1,0 +1,304 @@
+/* Contenedor principal */
+.lista-persona-container {
+  padding: 20px;
+}
+
+/* Header con título y botón */
+.lista-persona-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-nueva-persona {
+  background-color: #198754;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.btn-nueva-persona:hover {
+  background-color: #157347;
+}
+
+.lista-persona-title {
+  margin: 20px 0 10px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* Tabla de personas (lista principal) */
+.tabla-personas {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background-color: #2c2c2c;
+  border-radius: 6px;
+  overflow: hidden;
+  table-layout: auto;
+}
+.tabla-personas th,
+.tabla-personas td {
+  padding: 8px;
+  border-bottom: 1px solid #444;
+  color: #eee;
+  word-wrap: break-word;
+}
+.tabla-personas th {
+  background-color: #1f1f1f;
+  font-weight: 600;
+  color: #00bcd4;
+}
+.tabla-personas tr:hover {
+  background-color: #3a3a3a;
+}
+
+/* Columna de acciones en tabla principal */
+.tabla-personas td.acciones,
+.tabla-personas th.acciones {
+  width: 110px;
+  text-align: right;
+}
+
+/* Botones dentro de acciones en tabla principal */
+.tabla-personas td.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.tabla-personas td.acciones button {
+  padding: 4px 10px;
+  font-size: 13px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #444;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+.tabla-personas td.acciones button:hover {
+  background-color: #666;
+}
+.btn-eliminar {
+  background-color: #dc3545;
+}
+.btn-eliminar:hover {
+  background-color: #bb2d3b;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(20, 20, 20, 0.75);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Caja del modal */
+.usuarios-form {
+  background-color: rgba(33, 37, 41, 0.95);
+  padding: 30px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+.usuarios-form h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #00bcd4;
+}
+
+/* Scroll interno */
+.form-scroll {
+  overflow-y: auto;
+  max-height: 60vh;
+  padding-right: 10px;
+}
+
+/* Inputs */
+.usuarios-form input,
+.usuarios-form select {
+  margin-top: 4px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  width: 100%;
+  background-color: #f8f9fa;
+  color: #212529;
+  font-size: 14px;
+}
+.usuarios-form input:focus,
+.usuarios-form select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #0d6efd55;
+}
+
+/* Inputs deshabilitados */
+.usuarios-form input:disabled,
+.usuarios-form select:disabled,
+.usuarios-form textarea:disabled {
+  background-color: #3c3f44 !important; /* crema (beige) */
+  color: #b0b3b8 !important;               /* texto negro */
+  cursor: not-allowed;
+  border: 1px solid #555;               /* borde tenue */
+  opacity: 1;                           /* asegura que se vea */
+}
+
+/* Labels */
+.usuarios-form label {
+  margin-top: 10px;
+  font-weight: 500;
+  color: #ddd;
+}
+
+/* Botones en el footer */
+.form-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+.form-buttons button {
+  padding: 10px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}
+.btn-cancelar {
+  background-color: #6c757d;
+  color: white;
+}
+.btn-cancelar:hover {
+  background-color: #5a6268;
+}
+.btn-guardar {
+  background-color: #198754;
+  color: white;
+}
+.btn-guardar:hover {
+  background-color: #157347;
+}
+
+/* Tablas internas del modal */
+table.tabla-direcciones,
+table.tabla-telefonos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background-color: #2c2c2c;
+  border-radius: 6px;
+  overflow: hidden;
+  table-layout: fixed;
+}
+table.tabla-direcciones th,
+table.tabla-direcciones td,
+table.tabla-telefonos th,
+table.tabla-telefonos td {
+  padding: 8px;
+  border-bottom: 1px solid #444;
+  color: #eee;
+  word-wrap: break-word;
+  text-align: left;
+}
+table.tabla-direcciones th,
+table.tabla-telefonos th {
+  background-color: #1f1f1f;
+  font-weight: 600;
+  color: #00bcd4;
+}
+table.tabla-direcciones tr:hover,
+table.tabla-telefonos tr:hover {
+  background-color: #3a3a3a;
+}
+
+/* Columna de acciones en tablas internas */
+table.tabla-direcciones th.acciones,
+table.tabla-direcciones td.acciones,
+table.tabla-telefonos th.acciones,
+table.tabla-telefonos td.acciones {
+  width: 96px;       /* espacio justo para 3 íconos */
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Botones de acción en tablas internas */
+table.tabla-direcciones td.acciones button,
+table.tabla-telefonos td.acciones button {
+  margin-left: 4px;
+  padding: 4px;
+  width: 24px;       /* ancho fijo para ícono */
+  height: 24px;      /* alto fijo para ícono */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #f0f0f0;
+  font-size: 14px;
+}
+table.tabla-direcciones td.acciones button:hover,
+table.tabla-telefonos td.acciones button:hover {
+  background: #e0e0e0;
+}
+
+/* Colores específicos por acción */
+table.tabla-direcciones td.acciones button:first-child,
+table.tabla-telefonos td.acciones button:first-child {
+  color: #007bff; /* Ver → azul */
+}
+table.tabla-direcciones td.acciones button:nth-child(2),
+table.tabla-telefonos td.acciones button:nth-child(2) {
+  color: #28a745; /* Editar → verde */
+}
+table.tabla-direcciones td.acciones button:nth-child(3),
+table.tabla-telefonos td.acciones button:nth-child(3) {
+  color: #dc3545; /* Eliminar → rojo */
+}
+
+/* Sección headers */
+.seccion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.seccion-header h4 {
+  margin: 0;
+}
+
+/* Botones de nueva dirección/teléfono */
+.btn-nueva-direccion,
+.btn-nuevo-telefono {
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background-color: #007bff;   /* azul estilo Bootstrap */
+  color: #fff;
+  border: none;
+  border-radius: 20px;         /* pill redondeado */
+  transition: background-color 0.2s ease;
+}
+.btn-nueva-direccion:hover,
+.btn-nuevo-telefono:hover {
+  background-color: #0056b3;   /* tono más oscuro al pasar el mouse */
+}

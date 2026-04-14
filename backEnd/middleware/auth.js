@@ -1,7 +1,8 @@
 // proyecto/backend/src/middleware/auth.js
 const jwt = require('jsonwebtoken');
+const PermisoRepository = require('../repositories/permiso');
 
-function autenticarToken(req, res, next) {
+async function autenticarToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
 
@@ -11,8 +12,16 @@ function autenticarToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.CLAVE_ENCRIPTADO);
-    // Guardar datos del usuario en la request
-    req.user = decoded;
+
+    // 👇 Cargar permisos desde la BD
+    const permisos = await PermisoRepository.permisosPorUsuario(decoded.usuario);
+
+    // Guardar datos completos del usuario en la request
+    req.user = {
+      ...decoded,
+      permisos
+    };
+
     next();
   } catch (err) {
     return res.status(403).json({ error: 'Token inválido o expirado' });

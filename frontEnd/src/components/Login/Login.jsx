@@ -1,8 +1,9 @@
+// proyecto/frontEnd/src/components/Login/Login.jsx
 import React, { useState } from 'react';
 import './Login.css';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useUserStore } from '../../Store/userStore';
+import { useUserStore } from '../../Stores/userStore';
 
 const Login = ({ onClose }) => {
   const [usuario, setUsuario] = useState('');
@@ -20,7 +21,6 @@ const Login = ({ onClose }) => {
     }
 
     try {
-      // ✅ URL correcta con prefijo /api
       const res = await axios.post('http://localhost:8000/api/auth/login', {
         usuario,
         clave
@@ -30,32 +30,36 @@ const Login = ({ onClose }) => {
       console.log('✅ Respuesta del backend:', data);
 
       if (data.token) {
-        // Guardar en Zustand con todos los campos, incluido el label
+        // Guardar en Zustand
         setUserStore({
           usuario: data.usuario,
           rol: data.rol,
+          rolNombre: data.rolNombre,
           nombreCompleto: data.nombreCompleto,
-          label: data.label,        // 👈 ahora guardamos el label
-          token: data.token
+          label: data.label,
+          token: data.token,
+          permisos: data.permisos || []
         });
 
-        // Guardar en localStorage
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('usuario', data.usuario);
-        localStorage.setItem('rol', data.rol);
-        localStorage.setItem('nombreCompleto', data.nombreCompleto);
-        localStorage.setItem('label', data.label); // 👈 también guardamos el label
+        // Guardar en localStorage el objeto completo
+        localStorage.setItem('usuario', JSON.stringify({
+          usuario: data.usuario,
+          rol: data.rol,
+          rolNombre: data.rolNombre,
+          nombreCompleto: data.nombreCompleto,
+          label: data.label,
+          token: data.token,
+          permisos: data.permisos || []
+        }));
 
-        // ✅ Condición ajustada: rol puede ser número o texto
-        if (data.rol === 1 || data.rol === 'Administrador' || data.rol === 'administrador') {
-          console.log('🔁 Redirigiendo a /admin');
-          navigate('/admin');
-        } else {
-          console.log('🔁 Redirigiendo a /');
-          navigate('/');
+        // ✅ Redirigir siempre al dashboard
+        console.log('🔁 Redirigiendo a /admin');
+        navigate('/admin');
+
+        // Cerrar modal después de la redirección (con delay)
+        if (onClose) {
+          setTimeout(() => onClose(), 300);
         }
-
-        if (onClose) onClose();
       } else {
         setError(data.error || 'Credenciales incorrectas');
       }

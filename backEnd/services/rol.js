@@ -1,52 +1,41 @@
-// proyecto/backend/src/services/rol.js
-const RolRepository = require('../repositories/rol');
+// proyecto/backEnd/services/rol.js
+const RolRepositorio = require('../repositories/rol');
 
-const RolService = {
-  async getAll() {
-    return await RolRepository.getAll();
+const RolServicio = {
+  async obtenerRol() {
+    return await RolRepositorio.obtenerRol();
   },
 
-  async getById(id) {
+  async obtenerRolPorId(id) {
     if (!id) throw new Error('ID requerido');
-    const rol = await RolRepository.getById(id);
+    const rol = await RolRepositorio.obtenerRolPorId(id);
     if (!rol) throw new Error('Rol no encontrado');
     return rol;
   },
 
-  async create(data) {
-    console.log('📥 Datos recibidos en RolService.create:', data);
-
-    if (!data.rol) {
-      throw new Error('Campo obligatorio: rol');
-    }
-
-    return await RolRepository.create({
+  async agregarRol(data) {
+    if (!data.rol) throw new Error('Campo obligatorio: rol');
+    return await RolRepositorio.agregarRol({
       rol: data.rol,
       descripcion: data.descripcion || null,
       nota: data.nota || null
     });
   },
 
-  async update(id, data) {
+  async actualizarRol(id, data) {
     if (!id) throw new Error('ID requerido');
-
-    console.log('✏️ Datos recibidos en RolService.update:', id, data);
-
-    if (!data.rol) {
-      throw new Error('Campo obligatorio: rol');
-    }
-
-    return await RolRepository.update(id, {
+    if (!data.rol) throw new Error('Campo obligatorio: rol');
+    return await RolRepositorio.actualizarRol(id, {
       rol: data.rol,
       descripcion: data.descripcion || null,
       nota: data.nota || null
     });
   },
 
-  async delete(id) {
+  async eliminarRol(id) {
     if (!id) throw new Error('ID requerido');
-    return await RolRepository.delete(id);
+    return await RolRepositorio.eliminarRol(id);
   }
 };
 
-module.exports = RolService;
+module.exports = RolServicio;

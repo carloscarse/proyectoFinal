@@ -1,65 +1,50 @@
-// proyecto/backend/src/services/usuario.js
-const UsuarioRepository = require('../repositories/usuario');
+// proyecto/backEnd/services/usuario.js
+const UsuarioRepositorio = require('../repositories/usuario');
 
-const UsuarioService = {
-  async getAll() {
-    return await UsuarioRepository.getAll();
+const UsuarioServicio = {
+  async obtenerUsuario() {
+    return await UsuarioRepositorio.obtenerUsuario();
   },
 
-  async getById(id) {
+  async obtenerUsuarioPorId(id) {
     if (!id) throw new Error('ID requerido');
-    const usuario = await UsuarioRepository.getById(id);
+    const usuario = await UsuarioRepositorio.obtenerUsuarioPorId(id);
     if (!usuario) throw new Error('Usuario no encontrado');
     return usuario;
   },
 
-  async create(data) {
-    console.log('📥 Datos recibidos en UsuarioService.create:', data);
+  async obtenerUsuarioPorNombre(nombreUsuario) {
+    if (!nombreUsuario) throw new Error('Usuario requerido');
+    return await UsuarioRepositorio.obtenerUsuarioPorNombre(nombreUsuario);
+  },
 
-    // Validaciones básicas
-    if (!data.usuario) {
-      throw new Error('Campo obligatorio: usuario');
-    }
-    if (!data.clave) {
-      throw new Error('Campo obligatorio: clave');
-    }
-    if (!data.rol) {
-      throw new Error('Campo obligatorio: rol');
-    }
-
-    return await UsuarioRepository.create({
+  async agregarUsuario(data) {
+    if (!data.usuario) throw new Error('Campo obligatorio: usuario');
+    if (!data.clave) throw new Error('Campo obligatorio: clave');
+    if (!data.rol) throw new Error('Campo obligatorio: rol');
+    return await UsuarioRepositorio.agregarUsuario({
       usuario: data.usuario,
       clave: data.clave,
       rol: data.rol
     });
   },
 
-  async update(id, data) {
+  async actualizarUsuario(id, data) {
     if (!id) throw new Error('ID requerido');
-
-    console.log('✏️ Datos recibidos en UsuarioService.update:', id, data);
-
-    if (!data.usuario) {
-      throw new Error('Campo obligatorio: usuario');
-    }
-    if (!data.clave) {
-      throw new Error('Campo obligatorio: clave');
-    }
-    if (!data.rol) {
-      throw new Error('Campo obligatorio: rol');
-    }
-
-    return await UsuarioRepository.update(id, {
+    if (!data.usuario) throw new Error('Campo obligatorio: usuario');
+    if (!data.clave) throw new Error('Campo obligatorio: clave');
+    if (!data.rol) throw new Error('Campo obligatorio: rol');
+    return await UsuarioRepositorio.actualizarUsuario(id, {
       usuario: data.usuario,
       clave: data.clave,
       rol: data.rol
     });
   },
 
-  async delete(id) {
+  async eliminarUsuario(id) {
     if (!id) throw new Error('ID requerido');
-    return await UsuarioRepository.delete(id);
+    return await UsuarioRepositorio.eliminarUsuario(id);
   }
 };
 
-module.exports = UsuarioService;
+module.exports = UsuarioServicio;

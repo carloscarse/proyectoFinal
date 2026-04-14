@@ -1,54 +1,74 @@
-// proyecto/backend/src/services/telefono.js
-const TelefonoRepository = require('../repositories/telefono');
+// proyecto/backEnd/services/telefono.js
 
-const TelefonoService = {
-  async getAllByPersona(personaId) {
-    if (!personaId) throw new Error('ID de persona requerido');
-    return await TelefonoRepository.getAllByPersona(personaId);
+const TelefonoRepositorio = require('../repositories/telefono');
+
+const TelefonoServicio = {
+  async obtenerTelefono(user) {
+    if (!user.permisos.includes("telefono:ver")) {
+      throw new Error("No tiene permiso para ver teléfonos");
+    }
+    return await TelefonoRepositorio.obtenerTelefono();
   },
 
-  async getById(id) {
+  async obtenerTelefonoPorId(user, id) {
+    if (!user.permisos.includes("telefono:ver")) {
+      throw new Error("No tiene permiso para ver teléfonos");
+    }
     if (!id) throw new Error('ID requerido');
-    const telefono = await TelefonoRepository.getById(id);
+
+    const telefono = await TelefonoRepositorio.obtenerTelefonoPorId(id);
     if (!telefono) throw new Error('Teléfono no encontrado');
+
     return telefono;
   },
 
-  async create(personaId, data) {
-    if (!personaId) throw new Error('ID de persona requerido');
-    console.log('📥 Datos recibidos en TelefonoService.create:', personaId, data);
-
-    try {
-      const nuevoTelefono = await TelefonoRepository.create(personaId, data);
-      console.log('✅ Teléfono creado con ID:', nuevoTelefono.id);
-      return nuevoTelefono;
-    } catch (err) {
-      console.error('❌ Error en TelefonoService.create:', err.message);
-      throw err;
+  async agregarTelefono(user, data) {
+    if (!user.permisos.includes("telefono:agregar")) {
+      throw new Error("No tiene permiso para agregar teléfonos");
     }
+    if (!data.persona) {
+      throw new Error("El campo 'persona' es obligatorio para crear un teléfono");
+    }
+
+    const telefonoData = {
+      persona: data.persona,
+      pais: data.pais,
+      cArea: data.cArea,
+      numero: data.numero
+    };
+
+    return await TelefonoRepositorio.agregarTelefono(telefonoData);
   },
 
-  async update(id, data) {
-    if (!id) throw new Error('ID requerido');
-    console.log('✏️ Datos recibidos en TelefonoService.update:', id, data);
-
-    try {
-      return await TelefonoRepository.update(id, data);
-    } catch (err) {
-      console.error('❌ Error en TelefonoService.update:', err.message);
-      throw err;
+  async actualizarTelefono(user, id, data) {
+    if (!user.permisos.includes("telefono:editar")) {
+      throw new Error("No tiene permiso para editar teléfonos");
     }
+    if (!id) throw new Error('ID requerido');
+
+    const telPrev = await TelefonoRepositorio.obtenerTelefonoPorId(id);
+    if (!telPrev) throw new Error(`Teléfono con id ${id} no encontrado`);
+
+    await TelefonoRepositorio.actualizarTelefono(id, { ...data });
   },
 
-  async delete(id) {
-    if (!id) throw new Error('ID requerido');
-    try {
-      return await TelefonoRepository.delete(id);
-    } catch (err) {
-      console.error('❌ Error en TelefonoService.delete:', err.code, err.message);
-      throw err;
+  async eliminarTelefono(user, id) {
+    if (!user.permisos.includes("telefono:eliminar")) {
+      throw new Error("No tiene permiso para eliminar teléfonos");
     }
+    if (!id) throw new Error('ID requerido');
+
+    await TelefonoRepositorio.eliminarTelefono(id);
+  },
+
+  async obtenerTelefonosPorPersonaId(user, personaId) {
+    if (!user.permisos.includes("telefono:ver")) {
+      throw new Error("No tiene permiso para ver teléfonos");
+    }
+    if (!personaId) throw new Error("ID de persona requerido");
+
+    return await TelefonoRepositorio.obtenerTelefonosPorPersonaId(personaId);
   }
 };
 
-module.exports = TelefonoService;
+module.exports = TelefonoServicio;

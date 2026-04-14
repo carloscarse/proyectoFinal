@@ -1,0 +1,31 @@
+/* proyecto/frontEnd/src/pages/Admin/Layout/Header.css */
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background-color: #212529; /* bg-dark */
+  color: #f8f9fa; /* text-light */
+}
+
+.logout-button {
+  background-color: #3b5998; /* azul marino claro */
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  font-weight: bold;
+  text-transform: capitalize;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  background-color: #2d4373; /* tono más oscuro al pasar el mouse */
+}
+
+.logout-icon {
+  font-size: 1.2rem;
+}

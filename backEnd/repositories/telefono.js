@@ -1,67 +1,64 @@
-// proyecto/backend/src/repositories/telefono.js
+// proyecto/backEnd/repositories/telefono.js
+
 const { conexion } = require('../config/dataBase');
 
-const TelefonoRepository = {
-  // Obtener todos los teléfonos de una persona
-  async getAllByPersona(personaId) {
-    const [rows] = await conexion.query(
-      'SELECT * FROM telefono WHERE persona = ?',
-      [personaId]
-    );
-    return rows;
+const TelefonoRepositorio = {
+  async obtenerTelefono() {
+    const [rows] = await conexion.query('SELECT * FROM telefono');
+    return rows.map(t => ({
+      ...t,
+      label: [t.pais, t.cArea, t.numero]
+        .filter(v => v && v.toString().trim() !== '')
+        .join(' ')
+    }));
   },
 
-  // Obtener un teléfono por ID
-  async getById(id) {
-    const [rows] = await conexion.query(
-      'SELECT * FROM telefono WHERE id = ?',
-      [id]
-    );
-    return rows[0] || null;
+  async obtenerTelefonoPorId(id) {
+    const [rows] = await conexion.query('SELECT * FROM telefono WHERE id = ?', [id]);
+    if (!rows[0]) return null;
+    const t = rows[0];
+    return {
+      ...t,
+      label: [t.pais, t.cArea, t.numero]
+        .filter(v => v && v.toString().trim() !== '')
+        .join(' ')
+    };
   },
 
-  // Crear un nuevo teléfono
-  async create(personaId, telefono) {
-    const { pais, cArea, numero } = telefono;
+  async agregarTelefono(telefono) {
+    const { persona, pais, cArea, numero } = telefono;
+    const normalize = (val) => (val === undefined || val === '' ? null : val);
 
-    console.log('🧾 Ejecutando INSERT en telefono:', telefono);
+    if (!persona) {
+      throw new Error("El campo 'persona' es obligatorio en la tabla teléfono");
+    }
 
     const query = `
       INSERT INTO telefono (persona, pais, cArea, numero)
       VALUES (?, ?, ?, ?)
     `;
-
-    const normalize = (val) => (val === undefined || val === '' ? null : val);
-
     const values = [
-      personaId,
+      persona,
       normalize(pais),
       normalize(cArea),
       normalize(numero)
     ];
 
     const [result] = await conexion.query(query, values);
-
-    console.log('✅ Teléfono insertado con ID:', result.insertId);
-
-    return { id: result.insertId, persona: personaId, ...telefono };
+    return { id: result.insertId, ...telefono };
   },
 
-  // Actualizar un teléfono
-  async update(id, telefono) {
-    const { pais, cArea, numero } = telefono;
-
-    console.log('✏️ Ejecutando UPDATE en telefono:', { id, ...telefono });
+  async actualizarTelefono(id, telefono) {
+    const { persona, pais, cArea, numero } = telefono;
+    const normalize = (val) => (val === undefined || val === '' ? null : val);
 
     const query = `
       UPDATE telefono
-      SET pais=?, cArea=?, numero=?
+      SET persona=?, pais=?, cArea=?, numero=?
       WHERE id=?
     `;
-
-    const normalize = (val) => (val === undefined || val === '' ? null : val);
-
     const values = [
+      persona,
       normalize(pais),
       normalize(cArea),
       normalize(numero),
@@ -69,16 +66,23 @@ const TelefonoRepository = {
     ];
 
     await conexion.query(query, values);
-
     return { id, ...telefono };
   },
 
-  // Eliminar un teléfono
-  async delete(id) {
-    console.log('🗑️ Ejecutando DELETE en telefono con ID:', id);
+  async eliminarTelefono(id) {
     await conexion.query('DELETE FROM telefono WHERE id=?', [id]);
     return { message: `Teléfono con id ${id} eliminado` };
+  },
+
+  async obtenerTelefonosPorPersonaId(personaId) {
+    const [rows] = await conexion.query('SELECT * FROM telefono WHERE persona = ?', [personaId]);
+    return rows.map(t => ({
+      ...t,
+      label: [t.pais, t.cArea, t.numero]
+        .filter(v => v && v.toString().trim() !== '')
+        .join(' ')
+    }));
   }
 };
 
-module.exports = TelefonoRepository;
+module.exports = TelefonoRepositorio;

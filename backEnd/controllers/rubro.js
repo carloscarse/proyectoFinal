@@ -1,3 +1,4 @@
+// proyecto/backend/src/controllers/rubro.js
 const RubroService = require('../services/rubro');
 const PermisoService = require('../services/permiso');
 
@@ -46,9 +47,21 @@ const RubroController = {
     try {
       await PermisoService.validarAcceso(req.user.rol, 'rubro', 'eliminar');
       const resultado = await RubroService.delete(req.params.id);
-      res.json(resultado);
+
+      if (!resultado) {
+        return res.status(404).json({ error: 'Rubro no encontrado' });
+      }
+
+      res.json({ mensaje: 'Rubro eliminado correctamente' });
     } catch (err) {
-      res.status(403).json({ error: err.message });
+      console.error('❌ Error al eliminar rubro:', err.message);
+
+      // Si el error es por restricción de clave foránea
+      if (err.message.includes('foreign key')) {
+        return res.status(403).json({ error: err.message });
+      }
+
+      res.status(500).json({ error: 'Error interno al eliminar rubro' });
     }
   }
 };

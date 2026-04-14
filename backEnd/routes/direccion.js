@@ -1,15 +1,13 @@
+// proyecto/backEnd/routes/direccion.js
 const express = require('express');
 const router = express.Router();
-const DireccionController = require('../controllers/direccion');
-const requierePermiso = require('../middleware/permiso');
+const DireccionControlador = require('../controllers/direccion');
 
-// GET todas las direcciones de una persona
-router.get('/:personaId', requierePermiso('direccion', 'ver'), DireccionController.getAllByPersona);
-
-// POST nueva dirección para una persona
-router.post('/:personaId', requierePermiso('direccion', 'editar'), DireccionController.create);
-
-// DELETE dirección por id
-router.delete('/:id', requierePermiso('direccion', 'eliminar'), DireccionController.delete);
+router.get('/', DireccionControlador.obtenerDireccion);
+router.get('/:id', DireccionControlador.obtenerDireccionPorId);
+router.post('/', DireccionControlador.agregarDireccion);
+router.put('/:id', DireccionControlador.actualizarDireccion);
+router.delete('/:id', DireccionControlador.eliminarDireccion);
+router.get('/persona/:id', DireccionControlador.obtenerDireccionesPorPersonaId);
 
 module.exports = router;

@@ -1,51 +1,52 @@
-const RolService = require('../services/rol');
-const PermisoService = require('../services/permiso');
+// proyecto/backEnd/controllers/rol.js
+const RolServicio = require('../services/rol');
+const PermisoServicio = require('../services/permiso');
 
-const RolController = {
-  async getAll(req, res) {
+const RolControlador = {
+  async obtenerRol(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'rol', 'ver');
-      const data = await RolService.getAll();
+      await PermisoServicio.validarAcceso(req.user.rol, 'rol', 'ver');
+      const data = await RolServicio.obtenerRol();
       res.json(data);
     } catch (err) {
       res.status(403).json({ error: err.message });
     }
   },
 
-  async getById(req, res) {
+  async obtenerRolPorId(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'rol', 'ver');
-      const data = await RolService.getById(req.params.id);
+      await PermisoServicio.validarAcceso(req.user.rol, 'rol', 'ver');
+      const data = await RolServicio.obtenerRolPorId(req.params.id);
       res.json(data);
     } catch (err) {
       res.status(403).json({ error: err.message });
     }
   },
 
-  async create(req, res) {
+  async agregarRol(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'rol', 'editar');
-      const nuevo = await RolService.create(req.body);
+      await PermisoServicio.validarAcceso(req.user.rol, 'rol', 'editar');
+      const nuevo = await RolServicio.agregarRol(req.body);
       res.status(201).json(nuevo);
     } catch (err) {
       res.status(403).json({ error: err.message });
     }
   },
 
-  async update(req, res) {
+  async actualizarRol(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'rol', 'editar');
-      const actualizado = await RolService.update(req.params.id, req.body);
+      await PermisoServicio.validarAcceso(req.user.rol, 'rol', 'editar');
+      const actualizado = await RolServicio.actualizarRol(req.params.id, req.body);
       res.json(actualizado);
     } catch (err) {
       res.status(403).json({ error: err.message });
     }
   },
 
-  async delete(req, res) {
+  async eliminarRol(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'rol', 'eliminar');
-      const resultado = await RolService.delete(req.params.id);
+      await PermisoServicio.validarAcceso(req.user.rol, 'rol', 'eliminar');
+      const resultado = await RolServicio.eliminarRol(req.params.id);
       res.json(resultado);
     } catch (err) {
       res.status(403).json({ error: err.message });
@@ -53,4 +54,4 @@ const RolController = {
   }
 };
 
-module.exports = RolController;
+module.exports = RolControlador;

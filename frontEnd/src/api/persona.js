@@ -1,33 +1,70 @@
-import api from "./axiosConfig";
+// proyecto/frontEnd/src/api/persona.js
+
+import api from "./axiosConfig.js";
 
 const API_URL = "/persona";
 
-// Obtener todas las personas
-export const getAllPersonas = async () => {
-  const res = await api.get(API_URL);
-  return res.data;
+/**
+ * Obtener todas las personas
+ */
+export const obtenerPersonas = async () => {
+  try {
+    const res = await api.get(API_URL);
+    return res.data;
+  } catch (error) {
+    console.error("❌ Error al obtener todas las personas:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
-// Obtener una persona por ID
-export const getPersonaById = async (id) => {
-  const res = await api.get(`${API_URL}/${id}`);
-  return res.data;
+/**
+ * Obtener una persona por ID
+ */
+export const obtenerPersonaPorId = async (id) => {
+  try {
+    const res = await api.get(`${API_URL}/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error(`❌ Error al obtener persona con ID ${id}:`, error.response?.data || error.message);
+    throw error;
+  }
 };
 
-// Crear una nueva persona
-export const createPersona = async (personaData) => {
-  const res = await api.post(API_URL, personaData);
-  return res.data;
+/**
+ * Crear una nueva persona (solo datos de persona)
+ */
+export const agregarPersona = async (personaData) => {
+  try {
+    const res = await api.post(API_URL, personaData);
+    return res.data;
+  } catch (error) {
+    console.error("❌ Error al crear persona:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
-// Eliminar una persona por ID
-export const deletePersona = async (id) => {
-  const res = await api.delete(`${API_URL}/${id}`);
-  return res.data;
+/**
+ * Actualizar una persona por ID
+ */
+export const actualizarPersona = async (id, personaData) => {
+  try {
+    const res = await api.put(`${API_URL}/${id}`, personaData);
+    return res.data;
+  } catch (error) {
+    console.error("❌ Error al actualizar persona:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
-// Actualizar una persona por ID
-export const updatePersona = async (id, personaData) => {
-  const res = await api.put(`${API_URL}/${id}`, personaData);
-  return res.data;
+/**
+ * Eliminar una persona por ID
+ */
+export const eliminarPersona = async (id) => {
+  try {
+    const res = await api.delete(`${API_URL}/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error(`❌ Error al eliminar persona con ID ${id}:`, error.response?.data || error.message);
+    throw error;
+  }
 };

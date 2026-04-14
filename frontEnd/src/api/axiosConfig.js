@@ -1,22 +1,21 @@
+// proyecto/frontEnd/src/api/axiosConfig.js
 import axios from "axios";
 
-// Crear instancia de axios con baseURL del backend
 const api = axios.create({
   baseURL: "http://localhost:8000/api",
 });
 
-// Interceptor para agregar token automáticamente en cada request
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+// Interceptor para agregar el token desde localStorage
+api.interceptors.request.use((config) => {
+  try {
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    if (usuario?.token) {
+      config.headers.Authorization = `Bearer ${usuario.token}`;
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+  } catch (err) {
+    console.error("❌ Error leyendo usuario de localStorage:", err);
   }
-);
+  return config;
+});
 
 export default api;

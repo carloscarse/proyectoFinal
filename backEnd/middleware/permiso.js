@@ -1,3 +1,4 @@
+//proyecto/backEnd/middleware/permiso.js
 const PermisoService = require('../services/permiso');
 
 function requierePermiso(recurso, accion) {

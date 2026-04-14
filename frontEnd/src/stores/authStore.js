@@ -1,30 +1,36 @@
-export async function loginUsuario(usuario, clave) {
-  console.log('🔶 loginUsuario() llamado con:', usuario, clave);
+// proyecto/frontEnd/src/stores/authStore.js
+import { useUserStore } from './userStore';
 
+export async function loginUsuario(usuario, clave) {
   try {
-    const res = await fetch('http://localhost:8000/auth/login', {
+    const res = await fetch('http://localhost:8000/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ usuario, clave })
     });
 
-    console.log('📡 Respuesta HTTP:', res);
-
     const data = await res.json();
-    console.log('📦 JSON recibido:', data);
+
+    if (data?.token) {
+      localStorage.setItem('token', data.token);
+    }
+
+    if (data?.id) {
+      // Guardar usuario completo en el store
+      const setUser = useUserStore.getState().setUser;
+      setUser({ ...data, token: data.token });
+    }
 
     return data;
   } catch (error) {
-    console.error('❌ Error en loginUsuario:', error);
+    console.error('❌ Error en loginUsuario:', error.message);
     return null;
   }
 }
 
 export async function registrarUsuario(usuario, clave) {
-  console.log('🔷 registrarUsuario() llamado con:', usuario, clave);
-
   try {
-    const res = await fetch('http://localhost:8000/usuario', {
+    const res = await fetch('http://localhost:8000/api/usuario', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -35,11 +41,9 @@ export async function registrarUsuario(usuario, clave) {
     });
 
     const data = await res.json();
-    console.log('📦 JSON recibido en registro:', data);
-
     return data;
   } catch (error) {
-    console.error('❌ Error en registrarUsuario:', error);
+    console.error('❌ Error en registrarUsuario:', error.message);
     return null;
   }
 }

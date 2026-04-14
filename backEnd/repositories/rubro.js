@@ -6,9 +6,11 @@ const RubroRepository = {
   // Obtener todos los rubros
   async getAll() {
     const [rows] = await conexion.query('SELECT * FROM rubro');
+
+    // Construir el label desde el campo rubro
     return rows.map(r => ({
       ...r,
-      label: r.rubro // el label es el campo rubro
+      label: r.rubro?.trim() || ''
     }));
   },
 
@@ -20,38 +22,58 @@ const RubroRepository = {
     const r = rows[0];
     return {
       ...r,
-      label: r.rubro
+      label: r.rubro?.trim() || ''
     };
   },
 
   // Crear un nuevo rubro
-  async create(rubro) {
-    const { rubro: nombre, descripcion } = rubro;
+  async create(rubroData) {
+    const { rubro, descripcion } = rubroData;
 
-    console.log('🧾 Ejecutando INSERT en rubro:', { nombre, descripcion });
+    console.log('🧾 Ejecutando INSERT en rubro:', { rubro, descripcion });
 
-    const query = 'INSERT INTO rubro (rubro, descripcion) VALUES (?, ?)';
-    const values = [nombre, descripcion];
+    const query = `
+      INSERT INTO rubro (rubro, descripcion)
+      VALUES (?, ?)
+    `;
+
+    const normalize = val => (val === undefined || val === '' ? null : val);
+
+    const values = [
+      normalize(rubro),
+      normalize(descripcion)
+    ];
 
     const [result] = await conexion.query(query, values);
 
     console.log('✅ Rubro insertado con ID:', result.insertId);
 
-    return { id: result.insertId, ...rubro };
+    return { id: result.insertId, ...rubroData };
   },
 
   // Actualizar un rubro
-  async update(id, rubro) {
-    const { rubro: nombre, descripcion } = rubro;
+  async update(id, rubroData) {
+    const { rubro, descripcion } = rubroData;
 
-    console.log('✏️ Ejecutando UPDATE en rubro:', { id, nombre, descripcion });
+    console.log('✏️ Ejecutando UPDATE en rubro:', { id, rubro, descripcion });
 
-    const query = 'UPDATE rubro SET rubro=?, descripcion=? WHERE id=?';
-    const values = [nombre, descripcion, id];
+    const query = `
+      UPDATE rubro
+      SET rubro=?, descripcion=?
+      WHERE id=?
+    `;
+
+    const normalize = val => (val === undefined || val === '' ? null : val);
+
+    const values = [
+      normalize(rubro),
+      normalize(descripcion),
+      id
+    ];
 
     await conexion.query(query, values);
 
-    return { id, ...rubro };
+    return { id, ...rubroData };
   },
 
   // Eliminar un rubro
