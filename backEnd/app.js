@@ -16,7 +16,6 @@ app.use(cors({
   credentials: true
 }));
 
-// Permitir cabeceras y métodos personalizados
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", process.env.CORS_ORIGIN || "http://localhost:5173");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
@@ -61,11 +60,10 @@ const reserva = require('./routes/reserva');
 const servicio = require('./routes/servicio');
 const telefono = require('./routes/telefono');
 
-// Montar rutas
-app.use('/api/auth', auth); // pública, no requiere token
+// 📌 Rutas públicas
+app.use('/api/auth', auth); // login, logout, me (internamente protegido)
 
-// protegidas con verifyToken
-app.use('/api/auth', auth);
+// 📌 Rutas protegidas con verifyToken
 app.use('/api/usuario', verifyToken, usuario);
 app.use('/api/persona', verifyToken, persona);
 app.use('/api/rol', verifyToken, rol);

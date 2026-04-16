@@ -1,3 +1,5 @@
+// proyecto/backEnd/services/permiso.js
+
 const PermisoRepositorio = require('../repositories/permiso');
 
 const PermisoServicio = {
@@ -19,7 +21,7 @@ const PermisoServicio = {
   async obtenerPermisoPorId(id) {
     if (!id) throw new Error('ID requerido');
     const permiso = await PermisoRepositorio.obtenerPermisoPorId(id);
-    if (!permiso) throw new Error('Permiso no encontrado');
+    if (!permiso) throw new Error('Permiso no encontrado o eliminado');
     return permiso;
   },
 
@@ -35,9 +37,27 @@ const PermisoServicio = {
     return await PermisoRepositorio.actualizarPermiso(id, data);
   },
 
+  // 🔹 Borrado lógico
   async eliminarPermiso(id) {
     if (!id) throw new Error('ID requerido');
     return await PermisoRepositorio.eliminarPermiso(id);
+  },
+
+  // 🔹 Borrado físico (solo admins)
+  async eliminarPermisoFisico(id) {
+    if (!id) throw new Error('ID requerido');
+    return await PermisoRepositorio.eliminarPermisoFisico(id);
+  },
+
+  async obtenerPermisosEliminados() {
+    return await PermisoRepositorio.obtenerPermisosEliminados();
+  },
+
+  async obtenerPermisoEliminadoPorId(id) {
+    if (!id) throw new Error('ID requerido');
+    const permiso = await PermisoRepositorio.obtenerPermisoEliminadoPorId(id);
+    if (!permiso) throw new Error('Permiso eliminado no encontrado');
+    return permiso;
   }
 };
 

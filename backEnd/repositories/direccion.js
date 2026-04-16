@@ -1,10 +1,9 @@
 // proyecto/backEnd/repositories/direccion.js
-
 const { conexion } = require('../config/dataBase');
 
 const DireccionRepositorio = {
   async obtenerDireccion() {
-    const [rows] = await conexion.query('SELECT * FROM direccion');
+    const [rows] = await conexion.query('SELECT * FROM direccion WHERE borrado = FALSE');
     return rows.map(d => ({
       ...d,
       label: [d.calle, d.numero, d.ciudad, d.provincia, d.pais]
@@ -14,7 +13,7 @@ const DireccionRepositorio = {
   },
 
   async obtenerDireccionPorId(id) {
-    const [rows] = await conexion.query('SELECT * FROM direccion WHERE id = ?', [id]);
+    const [rows] = await conexion.query('SELECT * FROM direccion WHERE id = ? AND borrado = FALSE', [id]);
     if (!rows[0]) return null;
     const d = rows[0];
     return {
@@ -102,7 +101,7 @@ const DireccionRepositorio = {
       UPDATE direccion
       SET persona=?, calle=?, numero=?, manzana=?, lote=?, edificio=?, piso=?, departamento=?,
           barrio=?, localidad=?, ciudad=?, provincia=?, pais=?, codigoPostal=?
-      WHERE id=?
+      WHERE id=? AND borrado = FALSE
     `;
 
     const values = [
@@ -127,19 +126,40 @@ const DireccionRepositorio = {
     return { id, ...direccion };
   },
 
+  // 🔹 Borrado lógico (default)
   async eliminarDireccion(id) {
+    await conexion.query(`
+      UPDATE direccion
+      SET borrado = TRUE
+      WHERE id=?
+    `, [id]);
+    return { message: `Dirección con id ${id} marcada como borrada (borrado lógico)` };
+  },
+
+  // 🔹 Borrado físico (solo admins)
+  async eliminarDireccionFisico(id) {
     await conexion.query('DELETE FROM direccion WHERE id=?', [id]);
-    return { message: `Dirección con id ${id} eliminada` };
+    return { message: `Dirección con id ${id} eliminada físicamente (borrado definitivo)` };
   },
 
   async obtenerDireccionesPorPersonaId(personaId) {
-    const [rows] = await conexion.query('SELECT * FROM direccion WHERE persona = ?', [personaId]);
+    const [rows] = await conexion.query('SELECT * FROM direccion WHERE persona = ? AND borrado = FALSE', [personaId]);
     return rows.map(d => ({
       ...d,
       label: [d.calle, d.numero, d.ciudad, d.provincia, d.pais]
         .filter(v => v && v.toString().trim() !== '')
         .join(', ')
     }));
+  },
+
+  async obtenerDireccionesEliminadas() {
+    const [rows] = await conexion.query('SELECT * FROM direccion WHERE borrado = TRUE');
+    return rows;
+  },
+
+  async obtenerDireccionEliminadaPorId(id) {
+    const [rows] = await conexion.query('SELECT * FROM direccion WHERE id = ? AND borrado = TRUE', [id]);
+    return rows[0] || null;
   }
 };
 

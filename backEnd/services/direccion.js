@@ -17,7 +17,7 @@ const DireccionServicio = {
     if (!id) throw new Error('ID requerido');
 
     const direccion = await DireccionRepositorio.obtenerDireccionPorId(id);
-    if (!direccion) throw new Error('Dirección no encontrada');
+    if (!direccion) throw new Error('Dirección no encontrada o eliminada');
 
     return direccion;
   },
@@ -57,11 +57,13 @@ const DireccionServicio = {
     if (!id) throw new Error('ID requerido');
 
     const dirPrev = await DireccionRepositorio.obtenerDireccionPorId(id);
-    if (!dirPrev) throw new Error(`Dirección con id ${id} no encontrada`);
+    if (!dirPrev) throw new Error(`Dirección con id ${id} no encontrada o eliminada`);
 
     await DireccionRepositorio.actualizarDireccion(id, { ...data });
+    return { id, ...data };
   },
 
+  // 🔹 Borrado lógico
   async eliminarDireccion(user, id) {
     if (!user.permisos.includes("direccion:eliminar")) {
       throw new Error("No tiene permiso para eliminar direcciones");
@@ -69,6 +71,18 @@ const DireccionServicio = {
     if (!id) throw new Error('ID requerido');
 
     await DireccionRepositorio.eliminarDireccion(id);
+    return { message: `Dirección con id ${id} marcada como borrada (borrado lógico)` };
+  },
+
+  // 🔹 Borrado físico (solo admins)
+  async eliminarDireccionFisico(user, id) {
+    if (user.rol !== 'admin') {
+      throw new Error("Acción no permitida: solo administradores");
+    }
+    if (!id) throw new Error('ID requerido');
+
+    await DireccionRepositorio.eliminarDireccionFisico(id);
+    return { message: `Dirección con id ${id} eliminada físicamente (borrado definitivo)` };
   },
 
   async obtenerDireccionesPorPersonaId(user, personaId) {
@@ -78,6 +92,25 @@ const DireccionServicio = {
     if (!personaId) throw new Error("ID de persona requerido");
 
     return await DireccionRepositorio.obtenerDireccionesPorPersonaId(personaId);
+  },
+
+  async obtenerDireccionesEliminadas(user) {
+    if (user.rol !== 'admin') {
+      throw new Error("Acción no permitida: solo administradores");
+    }
+    return await DireccionRepositorio.obtenerDireccionesEliminadas();
+  },
+
+  async obtenerDireccionEliminadaPorId(user, id) {
+    if (user.rol !== 'admin') {
+      throw new Error("Acción no permitida: solo administradores");
+    }
+    if (!id) throw new Error('ID requerido');
+
+    const direccion = await DireccionRepositorio.obtenerDireccionEliminadaPorId(id);
+    if (!direccion) throw new Error('Dirección eliminada no encontrada');
+
+    return direccion;
   }
 };
 

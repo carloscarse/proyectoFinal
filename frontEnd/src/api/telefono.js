@@ -58,20 +58,6 @@ export const agregarTelefono = async (telefonoData) => {
 };
 
 /**
- * Eliminar un teléfono por ID
- */
-export const eliminarTelefono = async (id) => {
-  try {
-    const res = await api.delete(`${API_URL}/${id}`);
-    console.log(`✅ Teléfono con ID ${id} eliminado`);
-    return res.data;
-  } catch (error) {
-    console.error(`❌ Error al eliminar teléfono con ID ${id}:`, error.response?.data || error.message);
-    throw error;
-  }
-};
-
-/**
  * Actualizar un teléfono por ID
  */
 export const actualizarTelefono = async (id, telefonoData) => {
@@ -82,6 +68,60 @@ export const actualizarTelefono = async (id, telefonoData) => {
     return res.data;
   } catch (error) {
     console.error("❌ updateTelefono error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * Eliminar un teléfono (borrado lógico)
+ */
+export const eliminarTelefono = async (id) => {
+  try {
+    const res = await api.delete(`${API_URL}/${id}`);
+    console.log(`✅ Teléfono con ID ${id} eliminado (borrado lógico)`);
+    return res.data;
+  } catch (error) {
+    console.error(`❌ Error al eliminar teléfono con ID ${id}:`, error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * Eliminar un teléfono físicamente (solo admins)
+ */
+export const eliminarTelefonoFisico = async (id) => {
+  try {
+    const res = await api.delete(`${API_URL}/fisico/${id}`);
+    console.log(`✅ Teléfono con ID ${id} eliminado físicamente`);
+    return res.data;
+  } catch (error) {
+    console.error(`❌ Error al eliminar físicamente teléfono con ID ${id}:`, error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * Obtener todos los teléfonos eliminados (solo admins)
+ */
+export const obtenerTelefonosEliminados = async () => {
+  try {
+    const res = await api.get(`${API_URL}/eliminados`);
+    return res.data;
+  } catch (error) {
+    console.error("❌ Error al obtener teléfonos eliminados:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+/**
+ * Obtener un teléfono eliminado por ID (solo admins)
+ */
+export const obtenerTelefonoEliminadoPorId = async (id) => {
+  try {
+    const res = await api.get(`${API_URL}/eliminados/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error(`❌ Error al obtener teléfono eliminado con ID ${id}:`, error.response?.data || error.message);
     throw error;
   }
 };

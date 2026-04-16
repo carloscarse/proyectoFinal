@@ -8,13 +8,13 @@ const verifyToken = require('../middleware/verifyToken');
 // 🔑 Endpoint de login (público)
 router.post('/login', AuthControlador.login);
 
-// 🔎 Endpoint para obtener datos completos del usuario por nombre
+// 🔎 Endpoint para obtener datos completos del usuario por nombre (público)
 router.get('/user/:usuario', AuthControlador.getUserByName);
 
 // 🔑 Endpoint de logout (público)
 router.post('/logout', AuthControlador.logout);
 
-// 🚀 Nuevo endpoint protegido: usuario autenticado con permisos
+// 🚀 Endpoint protegido: datos del usuario autenticado
 router.get('/me', verifyToken, AuthControlador.me);
 
 module.exports = router;

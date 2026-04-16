@@ -2,10 +2,10 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8000/api",
+  baseURL: `${import.meta.env.VITE_API_BASE_URL}/api`,
 });
 
-// Interceptor para agregar el token desde localStorage
+// Interceptor para agregar el token desde localStorage (persistencia manejada por userStore)
 api.interceptors.request.use((config) => {
   try {
     const usuario = JSON.parse(localStorage.getItem("usuario"));

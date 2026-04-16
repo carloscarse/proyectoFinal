@@ -9,7 +9,7 @@ const RolServicio = {
   async obtenerRolPorId(id) {
     if (!id) throw new Error('ID requerido');
     const rol = await RolRepositorio.obtenerRolPorId(id);
-    if (!rol) throw new Error('Rol no encontrado');
+    if (!rol) throw new Error('Rol no encontrado o eliminado');
     return rol;
   },
 
@@ -32,9 +32,27 @@ const RolServicio = {
     });
   },
 
+  // 🔹 Borrado lógico
   async eliminarRol(id) {
     if (!id) throw new Error('ID requerido');
     return await RolRepositorio.eliminarRol(id);
+  },
+
+  // 🔹 Borrado físico (solo admins)
+  async eliminarRolFisico(id) {
+    if (!id) throw new Error('ID requerido');
+    return await RolRepositorio.eliminarRolFisico(id);
+  },
+
+  async obtenerRolesEliminados() {
+    return await RolRepositorio.obtenerRolesEliminados();
+  },
+
+  async obtenerRolEliminadoPorId(id) {
+    if (!id) throw new Error('ID requerido');
+    const rol = await RolRepositorio.obtenerRolEliminadoPorId(id);
+    if (!rol) throw new Error('Rol eliminado no encontrado');
+    return rol;
   }
 };
 

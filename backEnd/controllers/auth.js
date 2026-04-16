@@ -13,15 +13,19 @@ const AuthControlador = {
       const result = await AuthServicio.login(usuario, clave, req.ip);
 
       const user = await UsuarioRepositorio.obtenerUsuarioPorNombre(usuario);
+      if (!user) {
+        return res.status(401).json({ error: 'Usuario no encontrado o eliminado' });
+      }
+
       const rolData = await RolRepositorio.obtenerRolPorId(user.rol);
       const rolNombre = rolData?.rol || 'Rol desconocido';
+
       const persona = await PersonaRepositorio.obtenerPersonaPorId(user.persona);
       const nombreCompleto = persona
         ? `${persona.nombre} ${persona.apellido}`
         : 'Nombre desconocido';
 
       const label = `Usuario: ${rolNombre} ${nombreCompleto}`;
-
       const permisos = await PermisoRepositorio.permisosPorUsuario(user.usuario);
 
       res.json({
@@ -51,7 +55,9 @@ const AuthControlador = {
       const { usuario } = req.params;
 
       const user = await UsuarioRepositorio.obtenerUsuarioPorNombre(usuario);
-      if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+      if (!user) {
+        return res.status(404).json({ error: 'Usuario no encontrado o eliminado' });
+      }
 
       const rolData = await RolRepositorio.obtenerRolPorId(user.rol);
       const rolNombre = rolData?.rol || 'Rol desconocido';
@@ -62,7 +68,6 @@ const AuthControlador = {
         : 'Nombre desconocido';
 
       const label = `Usuario: ${rolNombre} ${nombreCompleto}`;
-
       const permisos = await PermisoRepositorio.permisosPorUsuario(user.usuario);
 
       res.json({
@@ -95,16 +100,29 @@ const AuthControlador = {
   async me(req, res) {
     try {
       const usuario = req.user; // viene del verifyToken
+      const rolData = await RolRepositorio.obtenerRolPorId(usuario.rol);
+      const rolNombre = rolData?.rol || 'Rol desconocido';
+
+      const persona = await PersonaRepositorio.obtenerPersonaPorId(usuario.persona);
+      const nombreCompleto = persona
+        ? `${persona.nombre} ${persona.apellido}`
+        : 'Nombre desconocido';
+
+      const label = `Usuario: ${rolNombre} ${nombreCompleto}`;
       const permisos = await PermisoRepositorio.permisosPorUsuario(usuario.usuario);
 
       res.json({
         id: usuario.id,
         usuario: usuario.usuario,
         rol: usuario.rol,
+        rolNombre,
+        nombreCompleto,
+        label,
         permisos
       });
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      console.error('❌ Error en me:', err.message);
+      res.status(500).json({ error: 'Error interno del servidor' });
     }
   }
 };
