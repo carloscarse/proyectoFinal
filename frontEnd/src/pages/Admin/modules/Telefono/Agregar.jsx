@@ -25,7 +25,7 @@ function AgregarTelefono({ onClose, onGuardar }) {
         <h3>Nuevo Teléfono</h3>
         <div className="agregar-body">
           <label>País:<input type="text" name="pais" value={formData.pais} onChange={handleChange} /></label>
-          <label>Código Área:<input type="text" name="codigoArea" value={formData.cArea} onChange={handleChange} /></label>
+          <label>Código Área:<input type="text" name="cArea" value={formData.cArea} onChange={handleChange} /></label>
           <label>Número:<input type="text" name="numero" value={formData.numero} onChange={handleChange} /></label>
         </div>
         <div className="form-buttons">

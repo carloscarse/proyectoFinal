@@ -1,22 +1,44 @@
-// proyecto/test/testTelefono.js
-require("dotenv").config({ path: "../backEnd/.env" });
 const axios = require("axios");
+
+const BASE_URL = "http://localhost:8000/api";
+const TEST_USER = process.env.TEST_USER || "admin";
+const TEST_PASS = process.env.TEST_PASS || "admin";
+
+async function crearApiAutenticada() {
+  const loginRes = await axios.post(`${BASE_URL}/auth/login`, {
+    usuario: TEST_USER,
+    clave: TEST_PASS,
+  });
+
+  const token = loginRes.data?.token;
+  if (!token) {
+    throw new Error("No se obtuvo token en login");
+  }
+
+  return axios.create({
+    baseURL: BASE_URL,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
 
 async function probarInsertTelefono() {
   try {
-    // ⚡️ Token válido
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXN1YXJpbyI6ImFkbWluIiwicm9sIjoxLCJpYXQiOjE3NzM0NjIxNTAsImV4cCI6MTc3MzQ5MDk1MH0.kV1Y5PWluNHmbJSaloiatSjHz0zKYrR0aavTj0V5Iec";
+    const api = await crearApiAutenticada();
 
-    const api = axios.create({
-      baseURL: "http://localhost:8000/api",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const personasRes = await api.get("/persona");
+    const personas = Array.isArray(personasRes.data) ? personasRes.data : [];
 
-    // 1️⃣ Crear un teléfono asociado a personaId=34
+    if (personas.length === 0) {
+      throw new Error("No hay personas disponibles para asociar el telefono");
+    }
+
+    const personaId = personas[0].id;
+
+    // 1️⃣ Crear un telefono asociado a una persona existente
     const nuevoTelefono = {
-      persona: 34,   // FK obligatoria
+      persona: personaId,
       pais: 54,
       cArea: 381,
       numero: 1234567
@@ -25,12 +47,13 @@ async function probarInsertTelefono() {
     const resPost = await api.post("/telefono", nuevoTelefono);
     console.log("✅ Teléfono insertado:", resPost.data);
 
-    // 2️⃣ Consultar teléfonos de esa persona
+    // 2️⃣ Consultar telefonos de esa persona
     const resGet = await api.get(`/telefono/persona/${nuevoTelefono.persona}`);
-    console.log("📞 Teléfonos de persona 34:", resGet.data);
+    console.log(`📞 Telefonos de persona ${personaId}:`, resGet.data);
 
   } catch (err) {
     console.error("❌ Error en prueba de teléfono:", err.response?.data || err.message);
+    process.exitCode = 1;
   }
 }
 

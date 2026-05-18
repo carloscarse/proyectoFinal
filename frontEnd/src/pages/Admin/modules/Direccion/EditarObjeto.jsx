@@ -25,6 +25,9 @@ function EditarObjetoDireccion({ direccion, onGuardar, onClose }) {
       <div className="direccion-agregar-objeto-container">
         <h3 className="direccion-agregar-objeto-title">Editar Dirección</h3>
         <div className="direccion-agregar-objeto-body">
+          <label>Persona:
+            <input type="text" name="persona" value={formData.persona || ""} onChange={handleChange} />
+          </label>
           <label>Calle:
             <input type="text" name="calle" value={formData.calle || ""} onChange={handleChange} />
           </label>

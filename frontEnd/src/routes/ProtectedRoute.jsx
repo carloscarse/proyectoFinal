@@ -1,5 +1,5 @@
 // frontEnd/src/routes/ProtectedRoute.jsx
-import { useUserStore } from "../Stores/userStore";
+import { useUserStore } from "../stores/userStore";
 import { Navigate } from "react-router-dom";
 
 const ProtectedRoute = ({ children }) => {

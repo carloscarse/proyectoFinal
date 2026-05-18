@@ -32,7 +32,10 @@ function DireccionAgregar({ tipo, personaId, onClose, onGuardar }) {
     } else {
       // 👉 Caso independiente: persistir directamente en la BD
       try {
-        const nuevaDireccion = await agregarDireccion(personaId, formData);
+        const nuevaDireccion = await agregarDireccion({
+          ...formData,
+          persona: personaId,
+        });
         console.log("✅ Dirección creada:", nuevaDireccion);
       } catch (error) {
         console.error("❌ Error al crear dirección:", error);

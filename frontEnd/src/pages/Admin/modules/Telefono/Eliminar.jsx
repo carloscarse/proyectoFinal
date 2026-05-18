@@ -18,7 +18,7 @@ function EliminarTelefono({ telefono, onClose, onEliminar }) {
         <div className="telefono-eliminar-card">
           <p><strong>ID:</strong> {telefono.id}</p>
           <p><strong>País:</strong> {telefono.pais}</p>
-          <p><strong>Código Área:</strong> {telefono.codigoArea}</p>
+          <p><strong>Código Área:</strong> {telefono.cArea}</p>
           <p><strong>Número:</strong> {telefono.numero}</p>
           <p><strong>Tipo:</strong> {telefono.tipo}</p>
         </div>

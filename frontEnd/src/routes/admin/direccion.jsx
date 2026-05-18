@@ -1,11 +1,7 @@
-import VerDireccion from "../../pages/Admin/modules/Direccion/Ver";
+import React from "react";
+import ListaDireccion from "../../pages/Admin/modules/Direccion/Lista";
 
 export default {
   path: "direccion",
-  children: [
-    {
-      path: "ver/:id",
-      element: <VerDireccion />,
-    }
-  ],
+  element: <ListaDireccion />,
 };
