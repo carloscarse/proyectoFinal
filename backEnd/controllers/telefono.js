@@ -65,7 +65,6 @@ const TelefonoController = {
     }
   },
 
-  // 🔹 Borrado lógico
   async eliminarTelefono(req, res) {
     try {
       await TelefonoServicio.eliminarTelefono(
@@ -73,27 +72,9 @@ const TelefonoController = {
         req.params.id,
         req.ip
       );
-      res.json({ message: `Teléfono con id ${req.params.id} marcado como borrado (borrado lógico)` });
+      res.json({ message: `Teléfono con id ${req.params.id} eliminado` });
     } catch (error) {
       console.error("❌ Error en eliminarTelefono:", error.message);
-      res.status(400).json({ error: error.message });
-    }
-  },
-
-  // 🔹 Borrado físico (solo admins)
-  async eliminarTelefonoFisico(req, res) {
-    try {
-      if (req.user.rol !== 'admin') {
-        return res.status(403).json({ error: 'Acción no permitida: solo administradores' });
-      }
-      await TelefonoServicio.eliminarTelefonoFisico(
-        req.user,
-        req.params.id,
-        req.ip
-      );
-      res.json({ message: `Teléfono con id ${req.params.id} eliminado físicamente (borrado definitivo)` });
-    } catch (error) {
-      console.error("❌ Error en eliminarTelefonoFisico:", error.message);
       res.status(400).json({ error: error.message });
     }
   },
@@ -108,35 +89,6 @@ const TelefonoController = {
       res.json(telefonos);
     } catch (error) {
       console.error("❌ Error en obtenerTelefonosPorPersonaId:", error.message);
-      res.status(400).json({ error: error.message });
-    }
-  },
-
-  async obtenerTelefonosEliminados(req, res) {
-    try {
-      if (req.user.rol !== 'admin') {
-        return res.status(403).json({ error: 'Acción no permitida: solo administradores' });
-      }
-      const telefonos = await TelefonoServicio.obtenerTelefonosEliminados(req.user, req.ip);
-      res.json(telefonos);
-    } catch (error) {
-      console.error("❌ Error en obtenerTelefonosEliminados:", error.message);
-      res.status(400).json({ error: error.message });
-    }
-  },
-
-  async obtenerTelefonoEliminadoPorId(req, res) {
-    try {
-      if (req.user.rol !== 'admin') {
-        return res.status(403).json({ error: 'Acción no permitida: solo administradores' });
-      }
-      const telefono = await TelefonoServicio.obtenerTelefonoEliminadoPorId(req.user, req.params.id, req.ip);
-      if (!telefono) {
-        return res.status(404).json({ error: 'Teléfono eliminado no encontrado' });
-      }
-      res.json(telefono);
-    } catch (error) {
-      console.error("❌ Error en obtenerTelefonoEliminadoPorId:", error.message);
       res.status(400).json({ error: error.message });
     }
   }

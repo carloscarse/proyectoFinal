@@ -65,7 +65,6 @@ const DireccionController = {
     }
   },
 
-  // 🔹 Borrado lógico
   async eliminarDireccion(req, res) {
     try {
       await DireccionServicio.eliminarDireccion(
@@ -73,28 +72,9 @@ const DireccionController = {
         req.params.id,
         req.ip
       );
-      res.json({ message: `Dirección con id ${req.params.id} marcada como borrada (borrado lógico)` });
+      res.json({ message: `Dirección con id ${req.params.id} eliminada` });
     } catch (error) {
       console.error("❌ Error en eliminarDireccion:", error.message);
-      res.status(400).json({ error: error.message });
-    }
-  },
-
-  // 🔹 Borrado físico (solo admins)
-  async eliminarDireccionFisico(req, res) {
-    try {
-      if (req.user.rol !== 'admin') {
-        return res.status(403).json({ error: 'Acción no permitida: solo administradores' });
-      }
-
-      await DireccionServicio.eliminarDireccionFisico(
-        req.user,
-        req.params.id,
-        req.ip
-      );
-      res.json({ message: `Dirección con id ${req.params.id} eliminada físicamente (borrado definitivo)` });
-    } catch (error) {
-      console.error("❌ Error en eliminarDireccionFisico:", error.message);
       res.status(400).json({ error: error.message });
     }
   },
@@ -109,44 +89,6 @@ const DireccionController = {
       res.json(direcciones);
     } catch (error) {
       console.error("❌ Error en obtenerDireccionesPorPersonaId:", error.message);
-      res.status(400).json({ error: error.message });
-    }
-  },
-
-  async obtenerDireccionesEliminadas(req, res) {
-    try {
-      if (req.user.rol !== 'admin') {
-        return res.status(403).json({ error: 'Acción no permitida: solo administradores' });
-      }
-
-      const direcciones = await DireccionServicio.obtenerDireccionesEliminadas(
-        req.user,
-        req.ip
-      );
-      res.json(direcciones);
-    } catch (error) {
-      console.error("❌ Error en obtenerDireccionesEliminadas:", error.message);
-      res.status(400).json({ error: error.message });
-    }
-  },
-
-  async obtenerDireccionEliminadaPorId(req, res) {
-    try {
-      if (req.user.rol !== 'admin') {
-        return res.status(403).json({ error: 'Acción no permitida: solo administradores' });
-      }
-
-      const direccion = await DireccionServicio.obtenerDireccionEliminadaPorId(
-        req.user,
-        req.params.id,
-        req.ip
-      );
-      if (!direccion) {
-        return res.status(404).json({ error: 'Dirección eliminada no encontrada' });
-      }
-      res.json(direccion);
-    } catch (error) {
-      console.error("❌ Error en obtenerDireccionEliminadaPorId:", error.message);
       res.status(400).json({ error: error.message });
     }
   }

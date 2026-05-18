@@ -56,55 +56,15 @@ export const actualizarPersona = async (id, personaData) => {
 };
 
 /**
- * Eliminar una persona (borrado lógico)
+ * Eliminar una persona
  */
 export const eliminarPersona = async (id) => {
   try {
     const res = await api.delete(`${API_URL}/${id}`);
-    console.log(`✅ Persona con ID ${id} eliminada (borrado lógico)`);
+    console.log(`✅ Persona con ID ${id} eliminada`);
     return res.data;
   } catch (error) {
     console.error(`❌ Error al eliminar persona con ID ${id}:`, error.response?.data || error.message);
-    throw error;
-  }
-};
-
-/**
- * Eliminar una persona físicamente (solo admins)
- */
-export const eliminarPersonaFisico = async (id) => {
-  try {
-    const res = await api.delete(`${API_URL}/fisico/${id}`);
-    console.log(`✅ Persona con ID ${id} eliminada físicamente`);
-    return res.data;
-  } catch (error) {
-    console.error(`❌ Error al eliminar físicamente persona con ID ${id}:`, error.response?.data || error.message);
-    throw error;
-  }
-};
-
-/**
- * Obtener todas las personas eliminadas (solo admins)
- */
-export const obtenerPersonasEliminadas = async () => {
-  try {
-    const res = await api.get(`${API_URL}/eliminadas`);
-    return res.data;
-  } catch (error) {
-    console.error("❌ Error al obtener personas eliminadas:", error.response?.data || error.message);
-    throw error;
-  }
-};
-
-/**
- * Obtener una persona eliminada por ID (solo admins)
- */
-export const obtenerPersonaEliminadaPorId = async (id) => {
-  try {
-    const res = await api.get(`${API_URL}/eliminadas/${id}`);
-    return res.data;
-  } catch (error) {
-    console.error(`❌ Error al obtener persona eliminada con ID ${id}:`, error.response?.data || error.message);
     throw error;
   }
 };

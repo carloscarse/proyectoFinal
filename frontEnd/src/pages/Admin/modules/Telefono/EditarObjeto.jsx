@@ -25,14 +25,17 @@ function EditarObjetoTelefono({ telefono, onGuardar, onClose }) {
       <div className="telefono-editar-objeto-container">
         <h3 className="telefono-editar-objeto-title">Editar Teléfono</h3>
         <div className="telefono-editar-objeto-body">
+          <label>Persona:
+            <input type="number" name="persona" value={formData.persona || ""} onChange={handleChange} placeholder="ID de persona" />
+          </label>
           <label>País:
-            <input type="text" name="pais" value={formData.pais || ""} onChange={handleChange} />
+            <input type="number" name="pais" value={formData.pais || ""} onChange={handleChange} placeholder="Ej: 54 (Argentina)" />
           </label>
           <label>Código de Área:
-            <input type="text" name="cArea" value={formData.cArea || ""} onChange={handleChange} />
+            <input type="number" name="cArea" value={formData.cArea || ""} onChange={handleChange} placeholder="Ej: 381" />
           </label>
           <label>Número:
-            <input type="text" name="numero" value={formData.numero || ""} onChange={handleChange} />
+            <input type="number" name="numero" value={formData.numero || ""} onChange={handleChange} placeholder="Ej: 1234567" />
           </label>
         </div>
         <div className="telefono-editar-objeto-form-buttons">

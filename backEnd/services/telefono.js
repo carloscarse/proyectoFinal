@@ -1,6 +1,7 @@
 // proyecto/backEnd/services/telefono.js
 
 const TelefonoRepositorio = require('../repositories/telefono');
+const PersonaRepositorio = require('../repositories/persona');
 
 const TelefonoServicio = {
   async obtenerTelefono(user) {
@@ -30,6 +31,11 @@ const TelefonoServicio = {
       throw new Error("El campo 'persona' es obligatorio para crear un teléfono");
     }
 
+    const personaExiste = await PersonaRepositorio.obtenerPersonaPorId(data.persona);
+    if (!personaExiste) {
+      throw new Error(`La persona con ID ${data.persona} no existe`);
+    }
+
     const telefonoData = {
       persona: data.persona,
       pais: data.pais,
@@ -53,7 +59,6 @@ const TelefonoServicio = {
     return { id, ...data };
   },
 
-  // 🔹 Borrado lógico
   async eliminarTelefono(user, id) {
     if (!user.permisos.includes("telefono:eliminar")) {
       throw new Error("No tiene permiso para eliminar teléfonos");
@@ -61,18 +66,7 @@ const TelefonoServicio = {
     if (!id) throw new Error('ID requerido');
 
     await TelefonoRepositorio.eliminarTelefono(id);
-    return { message: `Teléfono con id ${id} marcado como borrado (borrado lógico)` };
-  },
-
-  // 🔹 Borrado físico (solo admins)
-  async eliminarTelefonoFisico(user, id) {
-    if (user.rol !== 'admin') {
-      throw new Error("Acción no permitida: solo administradores");
-    }
-    if (!id) throw new Error('ID requerido');
-
-    await TelefonoRepositorio.eliminarTelefonoFisico(id);
-    return { message: `Teléfono con id ${id} eliminado físicamente (borrado definitivo)` };
+    return { message: `Teléfono con id ${id} eliminado` };
   },
 
   async obtenerTelefonosPorPersonaId(user, personaId) {
@@ -82,25 +76,6 @@ const TelefonoServicio = {
     if (!personaId) throw new Error("ID de persona requerido");
 
     return await TelefonoRepositorio.obtenerTelefonosPorPersonaId(personaId);
-  },
-
-  async obtenerTelefonosEliminados(user) {
-    if (user.rol !== 'admin') {
-      throw new Error("Acción no permitida: solo administradores");
-    }
-    return await TelefonoRepositorio.obtenerTelefonosEliminados();
-  },
-
-  async obtenerTelefonoEliminadoPorId(user, id) {
-    if (user.rol !== 'admin') {
-      throw new Error("Acción no permitida: solo administradores");
-    }
-    if (!id) throw new Error('ID requerido');
-
-    const telefono = await TelefonoRepositorio.obtenerTelefonoEliminadoPorId(id);
-    if (!telefono) throw new Error('Teléfono eliminado no encontrado');
-
-    return telefono;
   }
 };
 
