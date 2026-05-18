@@ -1,4 +1,4 @@
-// frontEnd/src/pages/Home.jsx
+3// frontEnd/src/pages/Home.jsx
 import React, { useState } from "react";
 
 // Componentes compartidos

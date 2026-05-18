@@ -15,6 +15,7 @@ const MainNav = ({ onLoginClick }) => (
         aria-label="Toggle navigation"
       >
         <i className="fa fa-align-justify"></i>
+        
       </button>
       <div className="collapse navbar-collapse" id="navbarResponsive">
         <ul className="navbar-nav ms-auto">

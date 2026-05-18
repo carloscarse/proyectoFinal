@@ -5,10 +5,33 @@ export const ENDPOINTS = import.meta.env.VITE_API_BASE_URL;
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: ENDPOINTS,
+  baseURL: ENDPOINTS + '/api',
   headers: {
     'Content-Type': 'application/json'
   }
+});
+
+// Interceptor para agregar el token JWT en cada request
+api.interceptors.request.use((config) => {
+  try {
+    const raw = localStorage.getItem('usuario');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.token) {
+        config.headers.Authorization = `Bearer ${parsed.token}`;
+        return config;
+      }
+    }
+    const rawStore = localStorage.getItem('user-storage');
+    if (rawStore) {
+      const parsed = JSON.parse(rawStore);
+      const token = parsed?.state?.user?.token;
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+  } catch (_) {}
+  return config;
 });
 
 // ──────────────── USUARIOS ────────────────

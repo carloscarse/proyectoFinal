@@ -41,6 +41,7 @@ const AuthControlador = {
     } catch (error) {
       if (
         error.message === 'Usuario no encontrado' ||
+        error.message === 'Usuario no encontrado o eliminado' ||
         error.message === 'Clave incorrecta'
       ) {
         return res.status(401).json({ error: error.message });
