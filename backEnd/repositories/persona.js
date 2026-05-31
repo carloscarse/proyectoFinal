@@ -1,4 +1,5 @@
 // proyecto/backEnd/repositories/persona.js
+
 const { conexion } = require('../config/dataBase');
 
 const PersonaRepositorio = {
@@ -29,8 +30,8 @@ const PersonaRepositorio = {
     const normalize = (val) => (val === undefined || val === '' ? null : val);
 
     const query = `
-      INSERT INTO persona (nombre, segundoNombre, apellido, segundoApellido, documento, nacimiento, sexo, email)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO persona (nombre, segundoNombre, apellido, segundoApellido, documento, nacimiento, sexo, email, borrado)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, FALSE)
     `;
     const values = [
       normalize(nombre),
@@ -44,7 +45,7 @@ const PersonaRepositorio = {
     ];
 
     const [result] = await conexion.query(query, values);
-    return { id: result.insertId, ...persona };
+    return { id: result.insertId, borrado: 0, ...persona }; // 👈 devolvemos borrado=0 en el objeto
   },
 
   async actualizarPersona(id, persona) {

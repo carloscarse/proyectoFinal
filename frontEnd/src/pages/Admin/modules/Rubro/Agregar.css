@@ -1,0 +1,107 @@
+/* proyecto/frontEnd/src/pages/Admin/modules/Rubro/Agregar.css */
+
+/* Overlay del modal */
+.rubro-agregar-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(20, 20, 20, 0.75);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+}
+
+/* Caja principal del modal */
+.rubro-agregar-container {
+  background-color: rgba(33, 37, 41, 0.95);
+  padding: 24px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+
+/* Título del modal */
+.rubro-agregar-title {
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #00bcd4;
+}
+
+/* Cuerpo interno con contraste y scroll */
+.rubro-agregar-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background-color: #2c2c2c;
+  border-radius: 8px;
+  border: 1px solid #444;
+}
+
+.rubro-agregar-body label {
+  display: block;
+  margin-top: 10px;
+  font-weight: 500;
+  color: #ddd;
+}
+
+.rubro-agregar-body input,
+.rubro-agregar-body textarea {
+  margin-top: 4px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  width: 100%;
+  background-color: #f8f9fa;
+  color: #212529;
+  font-size: 14px;
+}
+.rubro-agregar-body input:focus,
+.rubro-agregar-body textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #0d6efd55;
+}
+
+/* Footer con botones */
+.rubro-agregar-form-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.rubro-agregar-form-buttons button {
+  padding: 8px 16px;
+  min-width: 110px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+}
+
+.rubro-agregar-btn-cancelar {
+  background-color: #6c757d;
+  color: white;
+}
+.rubro-agregar-btn-cancelar:hover {
+  background-color: #5a6268;
+}
+
+.rubro-agregar-btn-guardar {
+  background-color: #198754;
+  color: white;
+}
+.rubro-agregar-btn-guardar:hover {
+  background-color: #157347;
+}

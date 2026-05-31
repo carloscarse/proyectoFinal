@@ -1,87 +1,91 @@
-// proyecto/backend/src/repositories/rubro.js
+// proyecto/backEnd/repositories/rubro.js
+
 const { conexion } = require('../config/dataBase');
 
-// ✅ Consultas directas a la tabla rubro
-const RubroRepository = {
-  // Obtener todos los rubros
-  async getAll() {
-    const [rows] = await conexion.query('SELECT * FROM rubro');
-
-    // Construir el label desde el campo rubro
+const RubroRepositorio = {
+  async obtenerRubros() {
+    const [rows] = await conexion.query('SELECT * FROM rubro WHERE borrado = FALSE');
     return rows.map(r => ({
       ...r,
-      label: r.rubro?.trim() || ''
+      label: [r.rubro, r.descripcion]
+        .filter(v => v && v.trim() !== '')
+        .join(' - ')
     }));
   },
 
-  // Obtener un rubro por ID
-  async getById(id) {
-    const [rows] = await conexion.query('SELECT * FROM rubro WHERE id = ?', [id]);
+  async obtenerRubroPorId(id) {
+    const [rows] = await conexion.query('SELECT * FROM rubro WHERE id = ? AND borrado = FALSE', [id]);
     if (!rows[0]) return null;
-
     const r = rows[0];
     return {
       ...r,
-      label: r.rubro?.trim() || ''
+      label: [r.rubro, r.descripcion]
+        .filter(v => v && v.trim() !== '')
+        .join(' - ')
     };
   },
 
-  // Crear un nuevo rubro
-  async create(rubroData) {
-    const { rubro, descripcion } = rubroData;
-
-    console.log('🧾 Ejecutando INSERT en rubro:', { rubro, descripcion });
+  async agregarRubro(rubro) {
+    const { rubro: nombreRubro, descripcion } = rubro;
+    const normalize = (val) => (val === undefined || val === '' ? null : val);
 
     const query = `
-      INSERT INTO rubro (rubro, descripcion)
-      VALUES (?, ?)
+      INSERT INTO rubro (rubro, descripcion, borrado)
+      VALUES (?, ?, FALSE)
     `;
-
-    const normalize = val => (val === undefined || val === '' ? null : val);
-
     const values = [
-      normalize(rubro),
+      normalize(nombreRubro),
       normalize(descripcion)
     ];
 
     const [result] = await conexion.query(query, values);
-
-    console.log('✅ Rubro insertado con ID:', result.insertId);
-
-    return { id: result.insertId, ...rubroData };
+    return { id: result.insertId, borrado: false, ...rubro };
   },
 
-  // Actualizar un rubro
-  async update(id, rubroData) {
-    const { rubro, descripcion } = rubroData;
-
-    console.log('✏️ Ejecutando UPDATE en rubro:', { id, rubro, descripcion });
+  async actualizarRubro(id, rubro) {
+    const { rubro: nombreRubro, descripcion } = rubro;
+    const normalize = (val) => (val === undefined || val === '' ? null : val);
 
     const query = `
       UPDATE rubro
       SET rubro=?, descripcion=?
-      WHERE id=?
+      WHERE id=? AND borrado = FALSE
     `;
-
-    const normalize = val => (val === undefined || val === '' ? null : val);
-
     const values = [
-      normalize(rubro),
+      normalize(nombreRubro),
       normalize(descripcion),
       id
     ];
 
     await conexion.query(query, values);
-
-    return { id, ...rubroData };
+    return { id, borrado: false, ...rubro };
   },
 
-  // Eliminar un rubro
-  async delete(id) {
-    console.log('🗑️ Ejecutando DELETE en rubro con ID:', id);
+  // 🔹 Borrado lógico (default)
+  async eliminarRubro(id) {
+    await conexion.query(`
+      UPDATE rubro
+      SET borrado = TRUE
+      WHERE id=?
+    `, [id]);
+    return { message: `Rubro con id ${id} marcado como borrado (borrado lógico)` };
+  },
+
+  // 🔹 Borrado físico (solo admins)
+  async eliminarRubroFisico(id) {
     await conexion.query('DELETE FROM rubro WHERE id=?', [id]);
-    return { message: `Rubro con id ${id} eliminado` };
+    return { message: `Rubro con id ${id} eliminado físicamente (borrado definitivo)` };
+  },
+
+  async obtenerRubrosEliminados() {
+    const [rows] = await conexion.query('SELECT * FROM rubro WHERE borrado = TRUE');
+    return rows;
+  },
+
+  async obtenerRubroEliminadoPorId(id) {
+    const [rows] = await conexion.query('SELECT * FROM rubro WHERE borrado = TRUE AND id = ?', [id]);
+    return rows[0] || null;
   }
 };
 
-module.exports = RubroRepository;
+module.exports = RubroRepositorio;

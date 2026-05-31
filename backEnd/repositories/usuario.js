@@ -3,12 +3,12 @@ const { conexion } = require('../config/dataBase');
 
 const UsuarioRepositorio = {
   async obtenerUsuario() {
-    const [rows] = await conexion.query('SELECT * FROM usuario WHERE borrado = FALSE');
+    const [rows] = await conexion.query('SELECT * FROM usuario WHERE borrado != TRUE');
     return rows.map(u => ({ ...u, label: u.usuario }));
   },
 
   async obtenerUsuarioPorId(id) {
-    const [rows] = await conexion.query('SELECT * FROM usuario WHERE id = ? AND borrado = FALSE', [id]);
+    const [rows] = await conexion.query('SELECT * FROM usuario WHERE id = ? AND borrado != TRUE', [id]);
     if (!rows[0]) return null;
     const u = rows[0];
     return { ...u, label: u.usuario };
@@ -16,7 +16,7 @@ const UsuarioRepositorio = {
 
   async obtenerUsuarioPorNombre(nombreUsuario) {
     const [rows] = await conexion.query(
-      'SELECT id, usuario, clave, rol, persona FROM usuario WHERE usuario = ? AND borrado = FALSE',
+      'SELECT id, usuario, clave, rol, persona FROM usuario WHERE usuario = ? AND borrado != TRUE',
       [nombreUsuario]
     );
     if (!rows[0]) return null;
@@ -38,7 +38,7 @@ const UsuarioRepositorio = {
   },
 
   async actualizarUsuario(id, { usuario, clave, rol }) {
-    const query = 'UPDATE usuario SET usuario=?, clave=?, rol=? WHERE id=? AND borrado = FALSE';
+    const query = 'UPDATE usuario SET usuario=?, clave=?, rol=? WHERE id=? AND borrado != TRUE';
     const values = [usuario, clave, rol, id];
     await conexion.query(query, values);
     return { id, usuario, clave, rol };

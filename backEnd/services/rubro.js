@@ -1,50 +1,87 @@
-// proyecto/backend/src/services/rubro.js
-const RubroRepository = require('../repositories/rubro');
+// proyecto/backEnd/services/rubro.js
 
-const RubroService = {
-  async getAll() {
-    return await RubroRepository.getAll();
+const RubroRepositorio = require('../repositories/rubro');
+
+const RubroServicio = {
+  async obtenerRubros(user) {
+    if (!user.permisos.includes("rubro:ver")) {
+      throw new Error("No tiene permiso para ver rubros");
+    }
+    return await RubroRepositorio.obtenerRubros();
   },
 
-  async getById(id) {
+  async obtenerRubroPorId(user, id) {
+    if (!user.permisos.includes("rubro:ver")) {
+      throw new Error("No tiene permiso para ver rubros");
+    }
     if (!id) throw new Error('ID requerido');
-    const rubro = await RubroRepository.getById(id);
-    if (!rubro) throw new Error('Rubro no encontrado');
+
+    const rubro = await RubroRepositorio.obtenerRubroPorId(id);
+    if (!rubro) throw new Error('Rubro no encontrado o eliminado');
+
     return rubro;
   },
 
-  async create(data) {
-    console.log('📥 Datos recibidos en RubroService.create:', data);
-
-    // No se aplican validaciones estrictas: todos los campos pueden ser null
-    const nuevoRubro = await RubroRepository.create(data);
-    console.log('✅ Rubro creado con ID:', nuevoRubro.id);
-
-    return nuevoRubro;
-  },
-
-  async update(id, data) {
-    if (!id) throw new Error('ID requerido');
-    console.log('✏️ Datos recibidos en RubroService.update:', id, data);
-
-    // Actualización directa, permitiendo null en cualquier campo
-    return await RubroRepository.update(id, { ...data });
-  },
-
-  async delete(id) {
-    if (!id) throw new Error('ID requerido');
-    try {
-      return await RubroRepository.delete(id);
-    } catch (err) {
-      console.error('❌ Error en RubroService.delete:', err.code, err.message);
-
-      if (err.code === 'ER_ROW_IS_REFERENCED_2') {
-        throw new Error('No se puede eliminar: el rubro está vinculado a otros registros (foreign key)');
-      }
-
-      throw err;
+  async agregarRubro(user, data) {
+    if (!user.permisos.includes("rubro:agregar")) {
+      throw new Error("No tiene permiso para agregar rubros");
     }
+    return await RubroRepositorio.agregarRubro(data);
+  },
+
+  async actualizarRubro(user, id, data) {
+    if (!user.permisos.includes("rubro:editar")) {
+      throw new Error("No tiene permiso para editar rubros");
+    }
+    if (!id) throw new Error('ID requerido');
+
+    const rubroPrev = await RubroRepositorio.obtenerRubroPorId(id);
+    if (!rubroPrev) throw new Error(`Rubro con id ${id} no encontrado o eliminado`);
+
+    await RubroRepositorio.actualizarRubro(id, { ...data });
+    return { id, ...data };
+  },
+
+  // 🔹 Borrado lógico
+  async eliminarRubro(user, id) {
+    if (!user.permisos.includes("rubro:eliminar")) {
+      throw new Error("No tiene permiso para eliminar rubros");
+    }
+    if (!id) throw new Error('ID requerido');
+
+    await RubroRepositorio.eliminarRubro(id);
+    return { message: `Rubro con id ${id} marcado como borrado (borrado lógico)` };
+  },
+
+  // 🔹 Borrado físico (solo admins)
+  async eliminarRubroFisico(user, id) {
+    if (user.rol !== 'admin') {
+      throw new Error("Acción no permitida: solo administradores");
+    }
+    if (!id) throw new Error('ID requerido');
+
+    await RubroRepositorio.eliminarRubroFisico(id);
+    return { message: `Rubro con id ${id} eliminado físicamente (borrado definitivo)` };
+  },
+
+  async obtenerRubrosEliminados(user) {
+    if (user.rol !== 'admin') {
+      throw new Error("Acción no permitida: solo administradores");
+    }
+    return await RubroRepositorio.obtenerRubrosEliminados();
+  },
+
+  async obtenerRubroEliminadoPorId(user, id) {
+    if (user.rol !== 'admin') {
+      throw new Error("Acción no permitida: solo administradores");
+    }
+    if (!id) throw new Error('ID requerido');
+
+    const rubro = await RubroRepositorio.obtenerRubroEliminadoPorId(id);
+    if (!rubro) throw new Error('Rubro eliminado no encontrado');
+
+    return rubro;
   }
 };
 
-module.exports = RubroService;
+module.exports = RubroServicio;

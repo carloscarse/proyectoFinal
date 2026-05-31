@@ -1,69 +1,117 @@
-// proyecto/backend/src/controllers/rubro.js
-const RubroService = require('../services/rubro');
-const PermisoService = require('../services/permiso');
+// proyecto/backEnd/controllers/rubro.js
 
-const RubroController = {
-  async getAll(req, res) {
+const RubroServicio = require('../services/rubro');
+
+const RubroControlador = {
+  async obtenerRubros(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'rubro', 'ver');
-      const data = await RubroService.getAll();
+      const data = await RubroServicio.obtenerRubros(req.user);
       res.json(data);
     } catch (err) {
+      console.error("❌ Error en obtenerRubros:", err.message);
       res.status(403).json({ error: err.message });
     }
   },
 
-  async getById(req, res) {
+  async obtenerRubroPorId(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'rubro', 'ver');
-      const data = await RubroService.getById(req.params.id);
+      const data = await RubroServicio.obtenerRubroPorId(
+        req.user,
+        req.params.id,
+        req.ip
+      );
+      if (!data) {
+        return res.status(404).json({ error: 'Rubro no encontrado o eliminado' });
+      }
       res.json(data);
     } catch (err) {
+      console.error("❌ Error en obtenerRubroPorId:", err.message);
       res.status(403).json({ error: err.message });
     }
   },
 
-  async create(req, res) {
+  async agregarRubro(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'rubro', 'editar');
-      const nuevo = await RubroService.create(req.body);
-      res.status(201).json(nuevo);
+      const nuevoRubro = await RubroServicio.agregarRubro(
+        req.user,
+        req.body,
+        req.ip
+      );
+      res.status(201).json(nuevoRubro);
     } catch (err) {
+      console.error("❌ Error en agregarRubro:", err.message);
       res.status(403).json({ error: err.message });
     }
   },
 
-  async update(req, res) {
+  async actualizarRubro(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'rubro', 'editar');
-      const actualizado = await RubroService.update(req.params.id, req.body);
+      const actualizado = await RubroServicio.actualizarRubro(
+        req.user,
+        req.params.id,
+        req.body,
+        req.ip
+      );
       res.json(actualizado);
     } catch (err) {
+      console.error("❌ Error en actualizarRubro:", err.message);
       res.status(403).json({ error: err.message });
     }
   },
 
-  async delete(req, res) {
+  // 🔹 Borrado lógico
+  async eliminarRubro(req, res) {
     try {
-      await PermisoService.validarAcceso(req.user.rol, 'rubro', 'eliminar');
-      const resultado = await RubroService.delete(req.params.id);
-
-      if (!resultado) {
-        return res.status(404).json({ error: 'Rubro no encontrado' });
-      }
-
-      res.json({ mensaje: 'Rubro eliminado correctamente' });
+      await RubroServicio.eliminarRubro(req.user, req.params.id, req.ip);
+      res.json({ mensaje: `Rubro con id ${req.params.id} marcado como borrado (borrado lógico)` });
     } catch (err) {
-      console.error('❌ Error al eliminar rubro:', err.message);
+      console.error("❌ Error en eliminarRubro:", err.message);
+      res.status(403).json({ error: err.message });
+    }
+  },
 
-      // Si el error es por restricción de clave foránea
-      if (err.message.includes('foreign key')) {
-        return res.status(403).json({ error: err.message });
+  // 🔹 Borrado físico (solo admins)
+  async eliminarRubroFisico(req, res) {
+    try {
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({ error: 'Acción no permitida: solo administradores' });
       }
+      await RubroServicio.eliminarRubroFisico(req.user, req.params.id, req.ip);
+      res.json({ mensaje: `Rubro con id ${req.params.id} eliminado físicamente (borrado definitivo)` });
+    } catch (err) {
+      console.error("❌ Error en eliminarRubroFisico:", err.message);
+      res.status(403).json({ error: err.message });
+    }
+  },
 
-      res.status(500).json({ error: 'Error interno al eliminar rubro' });
+  async obtenerRubrosEliminados(req, res) {
+    try {
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({ error: 'Acción no permitida: solo administradores' });
+      }
+      const data = await RubroServicio.obtenerRubrosEliminados(req.user, req.ip);
+      res.json(data);
+    } catch (err) {
+      console.error("❌ Error en obtenerRubrosEliminados:", err.message);
+      res.status(403).json({ error: err.message });
+    }
+  },
+
+  async obtenerRubroEliminadoPorId(req, res) {
+    try {
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({ error: 'Acción no permitida: solo administradores' });
+      }
+      const data = await RubroServicio.obtenerRubroEliminadoPorId(req.user, req.params.id, req.ip);
+      if (!data) {
+        return res.status(404).json({ error: 'Rubro eliminado no encontrado' });
+      }
+      res.json(data);
+    } catch (err) {
+      console.error("❌ Error en obtenerRubroEliminadoPorId:", err.message);
+      res.status(403).json({ error: err.message });
     }
   }
 };
 
-module.exports = RubroController;
+module.exports = RubroControlador;

@@ -1,4 +1,5 @@
 // proyecto/backEnd/repositories/logMovimiento.js
+
 const { conexion } = require('../config/dataBase');
 
 const LogMovimientoRepositorio = {

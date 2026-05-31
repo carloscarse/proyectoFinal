@@ -1,4 +1,5 @@
 // proyecto/frontEnd/src/pages/Admin/modules/Persona/Agregar.jsx
+
 import React, { useState } from "react";
 import "./Agregar.css";
 import { useUserStore } from "../../../../stores/userStore";

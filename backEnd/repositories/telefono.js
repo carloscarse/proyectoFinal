@@ -1,4 +1,5 @@
 // proyecto/backEnd/repositories/telefono.js
+
 const { conexion } = require('../config/dataBase');
 
 const TelefonoRepositorio = {
@@ -33,8 +34,8 @@ const TelefonoRepositorio = {
     }
 
     const query = `
-      INSERT INTO telefono (persona, pais, cArea, numero)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO telefono (persona, pais, cArea, numero, borrado)
+      VALUES (?, ?, ?, ?, FALSE)
     `;
     const values = [
       persona,
@@ -44,7 +45,7 @@ const TelefonoRepositorio = {
     ];
 
     const [result] = await conexion.query(query, values);
-    return { id: result.insertId, ...telefono };
+    return { id: result.insertId, borrado: 0, ...telefono }; // 👈 devolvemos borrado=0 en el objeto
   },
 
   async actualizarTelefono(id, telefono) {

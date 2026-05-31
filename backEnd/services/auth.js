@@ -1,6 +1,6 @@
 // proyecto/backEnd/services/auth.js
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const UsuarioRepositorio = require('../repositories/usuario');
 const LogMovimientoServicio = require('../services/logMovimiento');
 

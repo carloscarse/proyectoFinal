@@ -1,4 +1,5 @@
 // proyecto/frontEnd/src/pages/Admin/modules/Persona/EditarListaDireccion.jsx
+
 import React from "react";
 import "./ListaDireccion.css";
 import { getDireccionLabel } from "../../../../utils/labels/direccion";
@@ -24,8 +25,8 @@ function EditarListaDireccion({ direcciones = [], onVer, onEditar, onEliminar })
             </td>
           </tr>
         )}
-        {direcciones.filter(d => !d.eliminado).map((dir, idx) => (
-          <tr key={idx}>
+        {direcciones.filter(d => !d.eliminado).map((dir) => (
+          <tr key={dir.id || `${dir.calle}-${dir.numero}`}>
             <td className="persona-agregar-direccion-col-dato">
               {getDireccionLabel(dir)}
             </td>

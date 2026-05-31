@@ -1,45 +1,60 @@
-// testRubro.js
-// Script de prueba para endpoints de Rubro
+// proyecto/test/testRubroBack.js
+import axios from "axios";
 
-const axios = require('axios');
+const api = axios.create({
+  baseURL: "http://localhost:8000/api", // 👈 ajustá si tu back corre en otro puerto
+  withCredentials: true,
+});
 
-// Cambiá el puerto si tu backend corre en otro distinto
-const BASE_URL = 'http://localhost:3000/rubro';
+// 👇 Token que me pasaste
+const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidXN1YXJpbyI6ImFkbWluIiwicm9sIjoxLCJpYXQiOjE3NzkwNDMyOTAsImV4cCI6MTc3OTA3MjA5MH0.ZCJXiJCi85sSonnYtTmK4sxcqB6qt8-HYcLS1mHO1W8";
 
-async function probarRubros() {
+// Configurar header Authorization
+api.defaults.headers.common["Authorization"] = `Bearer ${TOKEN}`;
+
+async function testCRUDBack() {
   try {
-    console.log('🔎 Probando GET /rubros ...');
-    const resGet = await axios.get(`${BASE_URL}/rubros`);
-    console.log('✅ Rubros obtenidos:', resGet.data);
+    console.log("🔎 [BACK] Obteniendo rubros iniciales...");
+    const rubrosIniciales = await api.get("/rubro");
+    console.log("✅ Rubros iniciales:", rubrosIniciales.data);
 
-    console.log('\n🔎 Probando POST /rubro ...');
-    const nuevoRubro = {
-      rubro: 'Comercial',
-      descripcion: 'Locales de venta'
-    };
-    const resPost = await axios.post(`${BASE_URL}/rubro`, nuevoRubro);
-    console.log('✅ Rubro creado:', resPost.data);
+    console.log("➕ [BACK] Agregando nuevo rubro...");
+    const nuevoRubro = await api.post("/rubro", {
+      rubro: "TestRubroBack",
+      descripcion: "Rubro de prueba desde back"
+    });
+    console.log("✅ Nuevo rubro creado:", nuevoRubro.data);
 
-    const nuevoId = resPost.data.id;
+    console.log("🔎 [BACK] Obteniendo rubro por ID...");
+    const rubroPorId = await api.get(`/rubro/${nuevoRubro.data.id}`);
+    console.log("✅ Rubro obtenido por ID:", rubroPorId.data);
 
-    console.log(`\n🔎 Probando GET /rubro/${nuevoId} ...`);
-    const resGetById = await axios.get(`${BASE_URL}/rubro/${nuevoId}`);
-    console.log('✅ Rubro por ID:', resGetById.data);
+    console.log("✏️ [BACK] Actualizando rubro...");
+    const rubroActualizado = await api.put(`/rubro/${nuevoRubro.data.id}`, {
+      rubro: "TestRubroBackEditado",
+      descripcion: "Descripción editada desde back"
+    });
+    console.log("✅ Rubro actualizado:", rubroActualizado.data);
 
-    console.log(`\n🔎 Probando PUT /rubro/${nuevoId} ...`);
-    const actualizado = {
-      rubro: 'Comercial actualizado',
-      descripcion: 'Locales de venta y servicios'
-    };
-    const resPut = await axios.put(`${BASE_URL}/rubro/${nuevoId}`, actualizado);
-    console.log('✅ Rubro actualizado:', resPut.data);
+    console.log("🗑️ [BACK] Eliminando rubro (borrado lógico)...");
+    const rubroEliminado = await api.delete(`/rubro/${nuevoRubro.data.id}`);
+    console.log("✅ Rubro eliminado (lógico):", rubroEliminado.data);
 
-    console.log(`\n🔎 Probando DELETE /rubro/${nuevoId} ...`);
-    await axios.delete(`${BASE_URL}/rubro/${nuevoId}`);
-    console.log('✅ Rubro eliminado correctamente');
-  } catch (err) {
-    console.error('❌ Error en la prueba:', err.response?.data || err.message);
+    console.log("🔎 [BACK] Obteniendo rubros eliminados...");
+    const rubrosEliminados = await api.get("/rubro/eliminados");
+    console.log("✅ Rubros eliminados:", rubrosEliminados.data);
+
+    console.log("🗑️ [BACK] Eliminando rubro físicamente...");
+    const rubroEliminadoFisico = await api.delete(`/rubro/fisico/${nuevoRubro.data.id}`);
+    console.log("✅ Rubro eliminado físicamente:", rubroEliminadoFisico.data);
+
+    console.log("🔎 [BACK] Obteniendo rubros finales...");
+    const rubrosFinales = await api.get("/rubro");
+    console.log("✅ Rubros finales:", rubrosFinales.data);
+
+  } catch (error) {
+    console.error("❌ Error en testCRUDBack:", error.response?.data || error.message);
   }
 }
 
-probarRubros();
+testCRUDBack();

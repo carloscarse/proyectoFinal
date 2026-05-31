@@ -7,10 +7,11 @@ import direccion from "./items/direccion";
 import persona from "./items/persona";
 import telefono from "./items/telefono";
 import rubro from "./items/rubro";
+import inquilino from "./items/inquilino";
 
 import { registrarMovimiento } from "../../../../api/logMovimiento";
 
-const menuItems = [direccion, persona, rubro, telefono];
+const menuItems = [direccion, persona, rubro, telefono, inquilino];
 
 function Sidebar() {
   const { user } = useUserStore();
@@ -22,7 +23,6 @@ function Sidebar() {
     if (!user) return;
     try {
       await registrarMovimiento({
-        usuario: user.id,
         accion: "consulta",
         entidad,
         campo: "id",

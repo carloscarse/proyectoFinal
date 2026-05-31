@@ -1,4 +1,3 @@
-// proyecto/backEnd/repositories/direccion.js
 const { conexion } = require('../config/dataBase');
 
 const DireccionRepositorio = {
@@ -51,9 +50,9 @@ const DireccionRepositorio = {
     const query = `
       INSERT INTO direccion (
         persona, calle, numero, manzana, lote, edificio, piso, departamento,
-        barrio, localidad, ciudad, provincia, pais, codigoPostal
+        barrio, localidad, ciudad, provincia, pais, codigoPostal, borrado
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, FALSE)
     `;
 
     const values = [
@@ -74,7 +73,7 @@ const DireccionRepositorio = {
     ];
 
     const [result] = await conexion.query(query, values);
-    return { id: result.insertId, ...direccion };
+    return { id: result.insertId, borrado: 0, ...direccion }; // 👈 devolvemos borrado=0 en el objeto
   },
 
   async actualizarDireccion(id, direccion) {
