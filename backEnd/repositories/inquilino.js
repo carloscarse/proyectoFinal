@@ -1,4 +1,5 @@
 // proyecto/backEnd/repositories/inquilino.js
+
 const { conexion } = require('../config/dataBase');
 
 const InquilinoRepositorio = {

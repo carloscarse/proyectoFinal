@@ -1,4 +1,5 @@
 // frontEnd/src/utils/labels/rubro.js
+
 export function getRubroLabel(rubroObj) {
   if (!rubroObj || typeof rubroObj !== 'object') return '';
 

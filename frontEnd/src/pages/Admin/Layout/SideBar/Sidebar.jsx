@@ -8,10 +8,11 @@ import persona from "./items/persona";
 import telefono from "./items/telefono";
 import rubro from "./items/rubro";
 import inquilino from "./items/inquilino";
+import espacio from "./items/espacio"
 
 import { registrarMovimiento } from "../../../../api/logMovimiento";
 
-const menuItems = [direccion, persona, rubro, telefono, inquilino];
+const menuItems = [direccion, espacio, persona, rubro, telefono, inquilino];
 
 function Sidebar() {
   const { user } = useUserStore();

@@ -1,4 +1,5 @@
 // proyecto/frontEnd/src/api/inquilino.js
+
 import api from "./axiosConfig.js";
 
 const API_URL = "/inquilino";

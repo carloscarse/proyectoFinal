@@ -1,0 +1,132 @@
+/* proyecto/frontEnd/src/pages/Admin/modules/Espacio/Lista.css */
+
+/* Contenedor principal */
+.espacio-lista-container {
+  background-color: rgba(33, 37, 41, 0.95);
+  padding: 16px;
+  border-radius: 12px;
+  width: 98%;
+  max-width: 1400px;
+  margin: 5px auto;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  box-shadow: 0 0 12px rgba(0,0,0,0.4);
+}
+
+/* Header con título y botón */
+.espacio-lista-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.espacio-lista-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #00bcd4;
+}
+
+.espacio-lista-btn-agregar {
+  background-color: #198754;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+.espacio-lista-btn-agregar:hover {
+  background-color: #157347;
+}
+
+/* Tabla de espacios */
+.espacio-lista-tabla-wrapper {
+  flex: 1;
+  max-height: 60vh;       /* scroll interno */
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid #444;
+}
+
+.espacio-lista-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.espacio-lista-tabla thead {
+  position: sticky;
+  top: 0;
+  background-color: #1f1f1f;
+  z-index: 1;
+}
+
+.espacio-lista-tabla th,
+.espacio-lista-tabla td {
+  padding: 8px;
+  border-bottom: 1px solid #444;
+  color: #eee;
+  text-align: left;
+}
+
+.espacio-lista-tabla th {
+  font-weight: 600;
+  color: #00bcd4;
+}
+
+.espacio-lista-tabla tbody tr:nth-child(even) {
+  background-color: #2c2c2c;
+}
+.espacio-lista-tabla tbody tr:nth-child(odd) {
+  background-color: #3a3a3a;
+}
+
+.espacio-lista-tabla tr:hover {
+  background-color: #444;
+}
+
+/* Columna de acciones */
+.espacio-lista-acciones {
+  width: 90px;
+  text-align: center;
+}
+
+.espacio-lista-acciones-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 8px;
+}
+
+.espacio-lista-acciones-buttons button {
+  padding: 6px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Botones de acción */
+.espacio-lista-btn-ver {
+  background-color: #17a2b8;
+  color: white;
+}
+.espacio-lista-btn-editar {
+  background-color: #ffc107;
+  color: black;
+}
+.espacio-lista-btn-eliminar {
+  background-color: #dc3545;
+  color: white;
+}
+
+.espacio-lista-acciones-buttons button:hover {
+  opacity: 0.85;
+}

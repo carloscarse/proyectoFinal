@@ -1,4 +1,5 @@
 // proyecto/frontEnd/src/api/rubro.js
+
 import api from "./axiosConfig.js";
 
 const API_URL = "/rubro";
