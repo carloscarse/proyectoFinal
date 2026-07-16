@@ -1,4 +1,5 @@
 // proyecto/frontEnd/src/api/persona.js
+
 import api from "./axiosConfig.js";
 
 const API_URL = "/persona";

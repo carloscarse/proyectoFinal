@@ -1,4 +1,4 @@
-// proyecto/frontEnd/src/pages/Admin/modules/Espacio/Editar.jsx
+// proyecto/frontEnd/src/pages/Admin/modules/Espacio/Editar.jsx 👁️ ✏️ 🗑️
 
 import React, { useState, useEffect } from "react";
 import "./Editar.css";
@@ -9,6 +9,7 @@ import { getInquilinoLabel } from "../../../../utils/labels/inquilino";
 import { getRubroLabel } from "../../../../utils/labels/rubro";
 import { obtenerInquilinoPorId } from "../../../../api/inquilino";
 import { obtenerRubroPorId } from "../../../../api/rubro";
+import { obtenerPersonaPorId } from "../../../../api/persona"; // AGREGAR ESTE IMPORT
 import { commitEditar } from "./commitEditar";
 import InquilinoAgregarObjeto from "../Inquilino/AgregarObjeto";
 import RubroAgregarObjeto from "../Rubro/AgregarObjeto";
@@ -67,10 +68,24 @@ function Editar({ espacioInicial, onClose }) {
 
     async function cargarDatos() {
       try {
-        // Cargar inquilino actual si existe
+        // Cargar inquilino actual si existe - FIX: cargar persona
         if (espacioInicial?.inquilino) {
           const inqActual = await obtenerInquilinoPorId(espacioInicial.inquilino);
-          setInquilino({...inqActual, nuevo: false, editado: false, eliminado: false });
+          
+          // Si persona viene como ID, la cargamos
+          let personaCompleta = inqActual.persona;
+          if (inqActual.persona && typeof inqActual.persona === 'number') {
+            const resPersona = await obtenerPersonaPorId(inqActual.persona);
+            personaCompleta = resPersona.data || resPersona;
+          }
+          
+          setInquilino({
+           ...inqActual, 
+            persona: personaCompleta,
+            nuevo: false, 
+            editado: false, 
+            eliminado: false 
+          });
         }
 
         // Cargar rubro actual si existe
@@ -95,13 +110,11 @@ function Editar({ espacioInicial, onClose }) {
   };
 
   const handleAgregarInquilino = (nuevoInquilino) => {
-    // Normalizamos para que getInquilinoLabel funcione
     const inquilinoTemporal = {
-     ...nuevoInquilino, 
+   ...nuevoInquilino, 
       nuevo: true, 
       editado: false, 
       eliminado: false,
-      // Si viene de AgregarObjeto, puede venir plano, lo anidamos en persona
       persona: nuevoInquilino.persona || {
         nombre: nuevoInquilino.nombre || "",
         segundoNombre: nuevoInquilino.segundoNombre || "",
@@ -115,13 +128,11 @@ function Editar({ espacioInicial, onClose }) {
   };
 
   const handleAgregarRubro = (nuevoRubro) => {
-    // Normalizamos para que getRubroLabel funcione
     const rubroTemporal = {
-     ...nuevoRubro,
+   ...nuevoRubro,
       nuevo: true,
       editado: false,
       eliminado: false,
-      // Si viene con 'nombre' en vez de 'rubro', lo mapeamos
       rubro: nuevoRubro.rubro || nuevoRubro.nombre || ""
     };
     setRubro(rubroTemporal);
@@ -183,7 +194,7 @@ function Editar({ espacioInicial, onClose }) {
               <textarea name="descripcion" value={formData.descripcion} onChange={handleChange} />
             </label>
 
-            {/* Inquilino - ahora dentro de body */}
+            {/* Inquilino */}
             <div className="espacio-editar-relacion">
               <div className="espacio-editar-relacion-header">
                 <label>Inquilino</label>
@@ -212,7 +223,7 @@ function Editar({ espacioInicial, onClose }) {
               )}
             </div>
 
-            {/* Rubro - ahora dentro de body */}
+            {/* Rubro */}
             <div className="espacio-editar-relacion">
               <div className="espacio-editar-relacion-header">
                 <label>Rubro</label>
@@ -233,9 +244,9 @@ function Editar({ espacioInicial, onClose }) {
                     {rubro.editado && " (editado)"}
                   </span>
                   <div className="espacio-editar-acciones">
-                    <button className="espacio-editar-btn-ver" onClick={() => setRubroSeleccionado(rubro)}>👁️</button>
-                    <button className="espacio-editar-btn-editar" onClick={() => setRubroEditando(rubro)}>✏️</button>
-                    <button className="espacio-editar-btn-eliminar" onClick={() => setRubroEliminando(rubro)}>🗑️</button>
+                    <button className="espacio-editar-btn-ver" onClick={() => setRubroSeleccionado(rubro)}>👁</button>
+                    <button className="espacio-editar-btn-editar" onClick={() => setRubroEditando(rubro)}>✏</button>
+                    <button className="espacio-editar-btn-eliminar" onClick={() => setRubroEliminando(rubro)}>🗑</button>
                   </div>
                 </div>
               )}

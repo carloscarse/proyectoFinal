@@ -2,13 +2,15 @@
 
 import persona from "./persona";
 import direccion from "./direccion";
+import documentacion from "./documentacion";
 import rubro from "./rubro";
 import inquilino from "./inquilino";
-import espacio from "./espacio"
+import espacio from "./espacio";
 
 export const adminRoutes = [
   persona,
   direccion,
+  documentacion,
   rubro,
   inquilino,
   espacio

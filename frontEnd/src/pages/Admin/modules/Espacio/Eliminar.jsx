@@ -1,4 +1,4 @@
-// proyecto/frontEnd/src/pages/Admin/modules/Espacio/Eliminar.jsx  👁️
+// proyecto/frontEnd/src/pages/Admin/modules/Espacio/Eliminar.jsx 👁️
 
 import React, { useEffect, useState } from "react";
 import "./Eliminar.css";
@@ -10,6 +10,7 @@ import { getInquilinoLabel } from "../../../../utils/labels/inquilino";
 import { getRubroLabel } from "../../../../utils/labels/rubro";
 import { obtenerInquilinoPorId } from "../../../../api/inquilino";
 import { obtenerRubroPorId } from "../../../../api/rubro";
+import { obtenerPersonaPorId } from "../../../../api/persona";
 import VerInquilino from "../Inquilino/Ver";
 import VerRubro from "../Rubro/Ver";
 
@@ -42,11 +43,18 @@ function Eliminar({ espacio, onClose, onEliminar }) {
     }
 
     async function cargarRelaciones() {
-      // Consultar inquilino si existe
+      // Consultar inquilino si existe - FIX: cargar persona
       if (espacio?.inquilino) {
         try {
           const inq = await obtenerInquilinoPorId(espacio.inquilino);
-          setInquilino(inq);
+          
+          let personaCompleta = inq.persona;
+          if (inq.persona && typeof inq.persona === 'number') {
+            const resPersona = await obtenerPersonaPorId(inq.persona);
+            personaCompleta = resPersona.data || resPersona;
+          }
+          
+          setInquilino({...inq, persona: personaCompleta });
         } catch {
           setInquilino(null);
         }
@@ -103,7 +111,6 @@ function Eliminar({ espacio, onClose, onEliminar }) {
       <div className="espacio-eliminar-container">
         <h3 className="espacio-eliminar-title">Eliminar Espacio</h3>
 
-        {/* Contenedor con scroll */}
         <div className="espacio-eliminar-body">
           <div className="espacio-eliminar-card">
             <p><strong>ID:</strong> {espacio.id}</p>
@@ -194,7 +201,6 @@ function Eliminar({ espacio, onClose, onEliminar }) {
         </div>
       </div>
 
-      {/* Modales de ver relaciones */}
       {inquilinoSeleccionado && (
         <VerInquilino
           inquilino={inquilinoSeleccionado}

@@ -1,4 +1,5 @@
 // proyecto/backEnd/routes/persona.js
+
 const express = require('express');
 const router = express.Router();
 const PersonaControlador = require('../controllers/persona');

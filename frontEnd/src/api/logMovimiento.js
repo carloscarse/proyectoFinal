@@ -1,4 +1,5 @@
 // proyecto/frontEnd/src/api/logMovimiento.js
+
 import api from "./axiosConfig";
 
 const API_URL = "/logmovimiento";

@@ -4,15 +4,16 @@ import { useUserStore } from "../../../../stores/userStore";
 import "./SideBar.css";
 
 import direccion from "./items/direccion";
+import documentacion from "./items/documentacion";
 import persona from "./items/persona";
 import telefono from "./items/telefono";
 import rubro from "./items/rubro";
 import inquilino from "./items/inquilino";
-import espacio from "./items/espacio"
+import espacio from "./items/espacio";
 
 import { registrarMovimiento } from "../../../../api/logMovimiento";
 
-const menuItems = [direccion, espacio, persona, rubro, telefono, inquilino];
+const menuItems = [direccion, documentacion, espacio, persona, rubro, telefono, inquilino];
 
 function Sidebar() {
   const { user } = useUserStore();

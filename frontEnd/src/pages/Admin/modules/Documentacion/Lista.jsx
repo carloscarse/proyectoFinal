@@ -1,18 +1,20 @@
-// proyecto/frontEnd/src/pages/Admin/modules/Persona/Lista.jsx 👁️ ✏️ 🗑️
+// proyecto/frontEnd/src/pages/Admin/modules/Documentacion/Lista.jsx  👁️ ✏️ 🗑️
 
 import React, { useState, useEffect } from 'react';
 import './Lista.css';
-import { obtenerPersonas } from '../../../../api/persona';
+import { obtenerDocumentaciones } from '../../../../api/documentacion';
+import { obtenerInquilinos } from '../../../../api/inquilino';
+import { getInquilinoLabel } from '../../../../utils/labels/inquilino';
 import Ver from './Ver';
 import Editar from './Editar';
 import Eliminar from './Eliminar';
-import AgregarPersona from './Agregar.jsx';
+import Agregar from './Agregar.jsx';
 import { useUserStore } from '../../../../stores/userStore';
-import { getPersonaLabel } from "../../../../utils/labels/persona";
 import { registrarMovimiento } from '../../../../api/logMovimiento';
 
 function Lista() {
-  const [personas, setPersonas] = useState([]);
+  const [documentaciones, setDocumentaciones] = useState([]);
+  const [inquilinos, setInquilinos] = useState([]);
 
   // estados separados para cada modal
   const [showAgregar, setShowAgregar] = useState(false);
@@ -23,73 +25,91 @@ function Lista() {
   const usuario = useUserStore((state) => state.user);
 
   const cargar = async () => {
-    const data = await obtenerPersonas();
-    setPersonas(data || []);
+    try {
+      const [docs, inqs] = await Promise.all([
+        obtenerDocumentaciones(),
+        obtenerInquilinos()
+      ]);
+      setDocumentaciones(docs || []);
+      setInquilinos(inqs || []);
+    } catch (err) {
+      console.error("❌ Error cargando datos:", err.message);
+    }
   };
 
   useEffect(() => {
     cargar();
   }, []);
 
-  return (
-    <div className="persona-lista-container">
-      <div className="persona-lista-header">
-        <h2 className="persona-lista-title">Personas</h2>
+  const formatearFecha = (fecha) => {
+    if (!fecha) return '-';
+    return new Date(fecha).toLocaleDateString('es-AR');
+  };
 
-        {usuario?.permisos?.includes("persona:agregar") && (
+  const getInquilinoLabelPorId = (inquilinoId) => {
+    const inquilino = inquilinos.find(i => i.id === inquilinoId);
+    return inquilino ? getInquilinoLabel(inquilino) : `ID: ${inquilinoId || '-'}`;
+  };
+
+  return (
+    <div className="documentacion-lista-container">
+      <div className="documentacion-lista-header">
+        <h2 className="documentacion-lista-title">Documentación</h2>
+
+        {usuario?.permisos?.includes("documentacion:agregar") && (
           <button
-            className="persona-lista-btn-agregar"
+            className="documentacion-lista-btn-agregar"
             onClick={() => setShowAgregar(true)}
           >
-            ➕ Nueva Persona
+            ➕ Nueva Documentación
           </button>
         )}
       </div>
 
-      <div className="persona-lista-tabla-wrapper">
-        <table className="persona-lista-tabla">
+      <div className="documentacion-lista-tabla-wrapper">
+        <table className="documentacion-lista-tabla">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Nombre</th>
-              <th>Segundo Nombre</th>
-              <th>Apellido</th>
-              <th>Segundo Apellido</th>
+              <th>Inquilino</th>
+              <th>Descripción</th>
+              <th>Emisión</th>
+              <th>Vencimiento</th>
+              <th>Presentación</th>
               <th>Documento</th>
-              <th>Email</th>
-              <th className="persona-lista-acciones">Acciones</th>
+              <th className="documentacion-lista-acciones">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {personas.map(p => (
-              <tr key={p.id}>
-                <td>{p.id}</td>
-                <td>{p.nombre}</td>
-                <td>{p.segundoNombre}</td>
-                <td>{p.apellido}</td>
-                <td>{p.segundoApellido}</td>
-                <td>{p.documento}</td>
-                <td>{p.email}</td>
-                <td className="persona-lista-acciones">
-                  <div className="persona-lista-acciones-buttons">
-                    {usuario?.permisos?.includes("persona:ver") && (
+            {documentaciones.map(d => (
+              <tr key={d.id}>
+                <td>{d.id}</td>
+                <td>{getInquilinoLabelPorId(d.inquilino)}</td>
+                <td>{d.descripcion}</td>
+                <td>{formatearFecha(d.emision)}</td>
+                <td>{formatearFecha(d.vencimiento)}</td>
+                <td>{formatearFecha(d.fechaPresentacion)}</td>
+                <td>{d.documento}</td>
+                <td className="documentacion-lista-acciones">
+                  <div className="documentacion-lista-acciones-buttons">
+                    {usuario?.permisos?.includes("documentacion:ver") && (
                       <button
-                        className="persona-lista-btn-ver"
+                        className="documentacion-lista-btn-ver"
                         onClick={async () => {
                           try {
                             await registrarMovimiento({
                               usuario: usuario.id,
                               accion: "consulta",
-                              entidad: "persona",
+                              entidad: "documentacion",
                               campo: "Todos",
                               previo: null,
                               nuevo: null,
-                              detalle: `consultó los datos de la persona ${getPersonaLabel(p)} con id ${p.id}`
+                              detalle: `consultó los datos de la documentación ${d.descripcion} con id ${d.id}`
                             });
                           } catch (err) {
-                            console.error("❌ Error registrando log de ver persona:", err.message);
+                            console.error("❌ Error registrando log de ver documentación:", err.message);
                           }
-                          setShowVer(p.id);
+                          setShowVer(d.id);
                         }}
                         title="Ver"
                       >
@@ -97,24 +117,24 @@ function Lista() {
                       </button>
                     )}
 
-                    {usuario?.permisos?.includes("persona:editar") && (
+                    {usuario?.permisos?.includes("documentacion:editar") && (
                       <button
-                        className="persona-lista-btn-editar"
+                        className="documentacion-lista-btn-editar"
                         onClick={async () => {
                           try {
                             await registrarMovimiento({
                               usuario: usuario.id,
                               accion: "inicio-edicion",
-                              entidad: "persona",
+                              entidad: "documentacion",
                               campo: "Todos",
                               previo: null,
                               nuevo: null,
-                              detalle: `inició el proceso de edición de la persona ${getPersonaLabel(p)} con id ${p.id}`
+                              detalle: `inició el proceso de edición de la documentación ${d.descripcion} con id ${d.id}`
                             });
                           } catch (err) {
                             console.error("❌ Error registrando inicio de edición:", err.message);
                           }
-                          setShowEditar(p.id);
+                          setShowEditar(d.id);
                         }}
                         title="Editar"
                       >
@@ -122,24 +142,24 @@ function Lista() {
                       </button>
                     )}
 
-                    {usuario?.permisos?.includes("persona:eliminar") && (
+                    {usuario?.permisos?.includes("documentacion:eliminar") && (
                       <button
-                        className="persona-lista-btn-eliminar"
+                        className="documentacion-lista-btn-eliminar"
                         onClick={async () => {
                           try {
                             await registrarMovimiento({
                               usuario: usuario.id,
                               accion: "inicio-eliminacion",
-                              entidad: "persona",
+                              entidad: "documentacion",
                               campo: "Todos",
                               previo: null,
                               nuevo: null,
-                              detalle: `inició el proceso de eliminación de la persona ${getPersonaLabel(p)} con id ${p.id}`
+                              detalle: `inició el proceso de eliminación de la documentación ${d.descripcion} con id ${d.id}`
                             });
                           } catch (err) {
                             console.error("❌ Error registrando inicio de eliminación:", err.message);
                           }
-                          setShowEliminar(p.id);
+                          setShowEliminar(d.id);
                         }}
                         title="Eliminar"
                       >
@@ -156,7 +176,7 @@ function Lista() {
 
       {/* Modales independientes */}
       {showAgregar && (
-        <AgregarPersona
+        <Agregar
           onClose={() => {
             setShowAgregar(false);
             cargar();
@@ -166,14 +186,14 @@ function Lista() {
 
       {showVer && (
         <Ver
-          persona={personas.find(p => p.id === showVer)}
+          documentacion={documentaciones.find(d => d.id === showVer)}
           onClose={() => setShowVer(null)}
         />
       )}
 
       {showEditar && (
         <Editar
-          personaInicial={personas.find(p => p.id === showEditar)}
+          documentacionInicial={documentaciones.find(d => d.id === showEditar)}
           onClose={() => {
             setShowEditar(null);
             cargar();
@@ -183,7 +203,7 @@ function Lista() {
 
       {showEliminar && (
         <Eliminar
-          persona={personas.find(p => p.id === showEliminar)}
+          documentacion={documentaciones.find(d => d.id === showEliminar)}
           onClose={() => setShowEliminar(null)}
           onEliminar={() => {
             cargar();
